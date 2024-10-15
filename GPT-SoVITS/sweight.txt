@@ -1,0 +1,1 @@
+SoVITS_weights/eriri_e8_s248.pth

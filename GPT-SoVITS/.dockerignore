@@ -1,0 +1,10 @@
+docs
+logs
+output
+reference
+TEMP
+.git
+audio_output
+Docker
+runtime
+__pycache__
