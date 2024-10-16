@@ -41,7 +41,7 @@ const ChatMessage = ({
     <div className="flex items-start gap-4 mb-4" ref={ref}>
       {/* <div className="avatar h-14 w-16"> */}
       <img
-        src={isUser ? "user-avatar.jpg" : currCharacter.avatarUri}
+        src={isUser ? "user-avatar.jpg" : currCharacter.avatar_uri}
         alt=""
         className="object-cover rounded-lg h-12 w-12"
       />

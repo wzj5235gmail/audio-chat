@@ -19,6 +19,10 @@ dotenv.load_dotenv()
 
 database.Base.metadata.create_all(bind=database.engine)
 
+crud.create_character_if_not_exists(db=next(get_db()), name="加藤惠", avatar_uri="megumi-avatar.jpg", gpt_model_path="GPT_weights/megumi20240607-e15.ckpt", sovits_model_path="SoVITS_weights/megumi20240607_e8_s200.pth", refer_path="refer/megumi/megumi-1.wav", refer_text="主人公相手だって考えればいいのか")
+crud.create_character_if_not_exists(db=next(get_db()), name="泽村英梨梨", avatar_uri="eriri-avatar.jpg", gpt_model_path="GPT_weights/eriri-e15.ckpt", sovits_model_path="SoVITS_weights/eriri_e8_s248.pth", refer_path="refer/eriri/eriri-2.wav", refer_text="そんなわけでさ 今ラフデザインやってるんだけど")
+crud.create_character_if_not_exists(db=next(get_db()), name="霞之丘诗羽", avatar_uri="utaha-avatar.jpg", gpt_model_path="GPT_weights/utaha-e15.ckpt", sovits_model_path="SoVITS_weights/utaha_e8_s256.pth", refer_path="refer/utaha/utaha-2.wav", refer_text="はいそれじゃあ次のシーン 最初はヒロインの方から抱きついてくる")
+
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
 app.state.limiter = limiter
@@ -94,7 +98,7 @@ async def chat(
             "character_prompt": configs.chat_prompt[character_name],
         }
     }
-    
+
     # Get the bot's response
     chat_reply = chat_with_history.invoke(
         {
@@ -126,7 +130,7 @@ async def chat(
 @limiter.limit("10/minute")
 async def stt(
     request: Request,
-    audio: Annotated[UploadFile, File()], 
+    audio: Annotated[UploadFile, File()],
 ):
     # Get the user's info from the token
     current_user = get_current_user_from_token(request)
@@ -153,6 +157,16 @@ async def stt(
     return {
         "transcription": transcription.text,
     }
+
+
+@app.get("/api/characters")
+async def get_characters(
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+):
+    characters = crud.get_characters(db, skip=skip, limit=limit)
+    return characters
 
 
 @app.post("/api/users", response_model=schemas.User)

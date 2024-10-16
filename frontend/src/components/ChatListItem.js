@@ -58,7 +58,7 @@ const ChatListItem = ({
       className="flex gap-4 items-center border-b p-4 cursor-pointer hover:bg-gray-100"
       onClick={handleSelectCharacter}
     >
-      <img src={character.avatarUri} className="w-16 h-16 rounded-lg" />
+      <img src={character.avatar_uri} className="w-16 h-16 rounded-lg" />
       <div className="w-full">
         <div className="flex justify-between w-full">
           <div className="text-xl">{character.name}</div>

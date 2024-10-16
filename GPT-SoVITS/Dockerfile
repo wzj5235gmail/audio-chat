@@ -27,7 +27,5 @@ EXPOSE 9880
 CMD ["python", "api.py"]
 
 # docker build -t gpt-sovits .
-# docker run -d -p 9880:9880 gpt-sovits
-# upload to hub
-# docker tag gpt-sovits wzj5235/gpt-sovits:v2
-# docker push wzj5235/gpt-sovits:v2
+# allocate gpu and 8gb memory
+# docker run -d -p 9880:9880 --gpus all -m 8g gpt-sovits 

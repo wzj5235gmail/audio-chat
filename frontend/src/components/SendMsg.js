@@ -99,8 +99,8 @@ const SendMsg = ({
       const id = currCharacter.id;
       const resultToAudio = result.replace(/[\r|\n|\\s]+/g, "");
       const audioResponse = await fetch(
-        // `${process.env.REACT_APP_GENERATE_AUDIO_HOST}/api/generate_audio`,
-        `http://localhost:9880/api/generate_audio`,
+        `${process.env.REACT_APP_GENERATE_AUDIO_HOST}/api/generate_audio`,
+        // `http://localhost:9880/api/generate_audio`,
         {
           method: "POST",
           headers: {

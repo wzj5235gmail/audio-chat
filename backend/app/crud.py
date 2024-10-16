@@ -4,6 +4,37 @@ from . import models, schemas
 import time
 
 
+def create_character_if_not_exists(
+        db: Session, 
+        name: str,
+        avatar_uri: str,
+        gpt_model_path: str,
+        sovits_model_path: str,
+        refer_path: str,
+        refer_text: str
+    ):
+    existing_character = get_character(db, name)
+    if existing_character:
+        return existing_character
+    db_character = models.Character(name=name, avatar_uri=avatar_uri, gpt_model_path=gpt_model_path, sovits_model_path=sovits_model_path, refer_path=refer_path, refer_text=refer_text)
+    db.add(db_character)
+    db.commit()
+    db.refresh(db_character)
+    return db_character
+
+def get_character(
+        db: Session, 
+        name: str
+    ):
+    return db.query(models.Character).filter(models.Character.name == name).first() 
+
+def get_characters(
+        db: Session, 
+        skip: int = 0, 
+        limit: int = 100
+    ):
+    return db.query(models.Character).offset(skip).limit(limit).all()
+
 def get_user(
         db: Session, 
         user_id: int

@@ -1,9 +1,25 @@
 import { memo } from "react";
 import ChatListItem from "./ChatListItem";
-import { characters } from "../configs/configs";
 import { FiLogOut } from "react-icons/fi";
+import { useState, useEffect } from "react";
 
 const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen }) => {
+  const [characters, setCharacters] = useState([]);
+
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_HOST}/api/characters`)
+      .then((response) => response.json())
+      .then((data) => setCharacters(data));
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("token_expire_at");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("username");
+    window.location.reload();
+  };
+
   return (
     <div className="flex flex-col h-full lg:min-w-[400px]">
       <header className="bg-red-500 text-white p-4 flex justify-center items-center">
@@ -26,13 +42,7 @@ const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen }) => {
         </button>
         <button
           className="text-xl font-bold py-2 px-4 rounded bg-red-500 hover:bg-red-600 text-white"
-          onClick={() => {
-            localStorage.removeItem("token");
-            localStorage.removeItem("token_expire_at");
-            localStorage.removeItem("user_id");
-            localStorage.removeItem("username");
-            window.location.reload();
-          }}
+          onClick={handleLogout}
         >
           <FiLogOut />
         </button>

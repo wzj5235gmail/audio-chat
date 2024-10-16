@@ -1,0 +1,10 @@
+node_modules/
+.env
+runtime/
+GPT_weights/
+SoVITS_weights/
+tools/
+GPT_SoVITS/
+training_data/
+.env.frontend
+.env.backend

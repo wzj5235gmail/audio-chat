@@ -32,10 +32,14 @@ class Conversation(database.Base):
 
 class Character(database.Base):
     __tablename__ = "characters"
+    __table_args__ = {'mysql_charset': 'utf8mb4', 'mysql_collate': 'utf8mb4_unicode_ci'}
 
     id = Column(Integer, primary_key=True)
     name = Column(String(255), unique=True, index=True)
     avatar_uri = Column(String(255))
-    bg_uri = Column(String(255))
+    gpt_model_path = Column(String(255))
+    sovits_model_path = Column(String(255))
+    refer_path = Column(String(255))
+    refer_text = Column(String(255))
 
     conversation = relationship("Conversation", back_populates="character")
