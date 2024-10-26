@@ -13,7 +13,7 @@ const ChatListItem = ({
   useEffect(() => {
     if (!userId) return;
     fetch(
-      `${process.env.REACT_APP_HOST}/api/conversations?user_id=${userId}&character_id=${character.id}&limit=1`
+      `/api/conversations?user_id=${userId}&character_id=${character.id}&limit=1`
     )
       .then((res) => res.json())
       .then((data) => {

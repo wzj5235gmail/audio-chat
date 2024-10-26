@@ -6,6 +6,8 @@ export function ChatListDrawer({
   setIsChatting,
   isDrawerOpen,
   setIsDrawerOpen,
+  msg,
+  setMsg,
 }) {
   const handleClose = () => setIsDrawerOpen(false);
   const isLargeScreen = useMediaQuery({ query: "(min-width: 1024px)" });
@@ -16,10 +18,10 @@ export function ChatListDrawer({
       onClose={handleClose}
       className="w-full max-w-md p-0"
     >
-      <ChatList {...{ setCurrCharacter, setIsChatting, setIsDrawerOpen }} />
+      <ChatList {...{ setCurrCharacter, setIsChatting, setIsDrawerOpen, msg, setMsg }} />
     </Drawer>
   ) : (
-    <ChatList {...{ setCurrCharacter, setIsChatting, setIsDrawerOpen }} />
+    <ChatList {...{ setCurrCharacter, setIsChatting, setIsDrawerOpen, msg, setMsg }} />
   );
 }
 

@@ -10,7 +10,7 @@ const Login = ({ setIsLogin }) => {
 
   function handleLogin(e) {
     e.preventDefault();
-    fetch(`${process.env.REACT_APP_HOST}/api/token`, {
+    fetch(`/api/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -36,9 +36,14 @@ const Login = ({ setIsLogin }) => {
       });
   }
 
+  function handleTestUserLogin(e) {
+    e.preventDefault();
+    setLoginForm({ username: "abc@gmail.com", password: "123456" });
+  }
+
   function handleRegister(e) {
     e.preventDefault();
-    fetch(`${process.env.REACT_APP_HOST}/api/users`, {
+    fetch(`/api/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -124,6 +129,14 @@ const Login = ({ setIsLogin }) => {
                 onClick={() => setShowRegister(true)}
               >
                 去注册
+              </button>
+            </div>
+            <div className="flex items-center justify-center mt-2">
+              <button
+                className="border hover:border-blue-500 text-blue-600 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+                onClick={handleTestUserLogin}
+              >
+                Test User Login
               </button>
             </div>
           </>

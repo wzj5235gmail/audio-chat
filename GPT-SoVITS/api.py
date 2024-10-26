@@ -832,7 +832,7 @@ async def change_refer(
     return handle_change(refer_wav_path, prompt_text, prompt_language)
 
 
-@app.post("/api/generate_audio")
+@app.post("/voice_generate")
 async def tts_endpoint(request: Request):
     json_post_raw = await request.json()
     return handle(

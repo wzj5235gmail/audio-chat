@@ -8,7 +8,7 @@ const ChatHistory = ({ history, dispatch, currCharacter }) => {
     const userId = localStorage.getItem("user_id");
     if (!userId) return;
     fetch(
-      `${process.env.REACT_APP_HOST}/api/conversations?user_id=${userId}&character_id=${currCharacter.id}`
+      `/api/conversations?user_id=${userId}&character_id=${currCharacter.id}`
     )
       .then((res) => res.json())
       .then((data) => {

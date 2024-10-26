@@ -64,7 +64,7 @@ const SendMsg = ({
       });
     } else {
       const chatResponse = await fetch(
-        `${process.env.REACT_APP_HOST}/api/chat/${currCharacter.id}`,
+        `/api/chat/${currCharacter.id}`,
         {
           method: "POST",
           headers: {
@@ -99,7 +99,7 @@ const SendMsg = ({
       const id = currCharacter.id;
       const resultToAudio = result.replace(/[\r|\n|\\s]+/g, "");
       const audioResponse = await fetch(
-        `${process.env.REACT_APP_GENERATE_AUDIO_HOST}/api/generate_audio`,
+        `/voice_generate`,
         // `http://localhost:9880/api/generate_audio`,
         {
           method: "POST",

@@ -108,7 +108,7 @@ const RecordButton = ({ setHistory, sendMessage, setIsRecording }) => {
       // 发送请求到 API
       try {
         // const response = await fetch(`/api/stt`, {
-        const response = await fetch(`${process.env.REACT_APP_HOST}/api/stt`, {
+        const response = await fetch(`/api/stt`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

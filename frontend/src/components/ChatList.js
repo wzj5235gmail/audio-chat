@@ -7,7 +7,7 @@ const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen }) => {
   const [characters, setCharacters] = useState([]);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_HOST}/api/characters`)
+    fetch(`/api/characters`)
       .then((response) => response.json())
       .then((data) => setCharacters(data));
   }, []);
@@ -21,7 +21,7 @@ const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen }) => {
   };
 
   return (
-    <div className="flex flex-col h-full lg:min-w-[400px]">
+    <div className="flex flex-col lg:min-w-[400px]" style={{ height: "100vh" }}>
       <header className="bg-red-500 text-white p-4 flex justify-center items-center">
         <h1 className="text-xl font-bold text-center">联系人</h1>
       </header>{" "}
