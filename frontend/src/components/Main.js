@@ -1,14 +1,15 @@
 import { useState, useEffect, memo, useContext } from "react";
-import Login from "./Login";
 import ChatMain from "./ChatMain";
 import ChatListDrawer from "./ChatListDrawer";
 import { LanguageContext } from "../contexts/LanguageContext";
+import LoginModal from "./LoginModal";
 
 const Main = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isChatting, setIsChatting] = useState(false);
   const [currCharacter, setCurrCharacter] = useState({});
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { t } = useContext(LanguageContext);
   // if not token or token expired, change login state
   useEffect(() => {
@@ -19,43 +20,50 @@ const Main = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (!isLogin) {
+      setIsLoginModalOpen(true);
+    }
+  }, [isLogin]);
+
   return (
     <div id="chat" className="flex" style={{ height: "100vh", width: "100vw" }}>
-      {!isLogin ? (
-        <Login setIsLogin={setIsLogin} />
-      ) : (
-        <>
-          <ChatListDrawer
+      <ChatListDrawer
+        {...{
+          setCurrCharacter,
+          setIsChatting,
+          isDrawerOpen,
+          setIsDrawerOpen,
+          isLogin,
+          setIsLoginModalOpen,
+        }}
+      />
+      <div className="w-full">
+        {isChatting ? (
+          <ChatMain
             {...{
-              setCurrCharacter,
+              currCharacter,
+              setIsLogin,
               setIsChatting,
-              isDrawerOpen,
               setIsDrawerOpen,
             }}
           />
-          <div className="w-full">
-            {isChatting ? (
-              <ChatMain
-                {...{
-                  currCharacter,
-                  setIsLogin,
-                  setIsChatting,
-                  setIsDrawerOpen,
-                }}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <button
-                  className="text-xl font-bold py-2 px-4 rounded-full bg-red-500 hover:bg-red-600 text-white"
-                  onClick={() => setIsDrawerOpen(true)}
-                >
-                  {t("selectCharacter")}
-                </button>
-              </div>
-            )}
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <button
+              className="text-xl font-bold py-2 px-4 rounded-full bg-red-500 hover:bg-red-600 text-white"
+              onClick={() => setIsDrawerOpen(true)}
+            >
+              {t("selectCharacter")}
+            </button>
           </div>
-        </>
-      )}
+        )}
+      </div>
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        setIsLogin={setIsLogin}
+      />
     </div>
   );
 };

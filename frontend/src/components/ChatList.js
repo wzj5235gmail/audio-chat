@@ -5,7 +5,7 @@ import { useState, useEffect, useContext } from "react";
 import { LanguageContext } from "../contexts/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen }) => {
+const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen, isLogin, setIsLoginModalOpen }) => {
   const { t } = useContext(LanguageContext);
   const [characters, setCharacters] = useState([]);
 
@@ -43,15 +43,26 @@ const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen }) => {
         ))}
       </div>
       <div className="relative bottom-0 p-4 border-t border-r flex justify-between items-center">
-        <button className="text-xl rounded border px-4 py-2 bg-white">
-          {localStorage.getItem("username")}
-        </button>
-        <button
-          className="text-xl font-bold py-2 px-4 rounded bg-red-500 hover:bg-red-600 text-white"
-          onClick={handleLogout}
+        {isLogin && (
+          <button className="text-xl rounded border px-4 py-2 bg-white">
+            {localStorage.getItem("username")}
+          </button>
+        )}
+        {isLogin ? (
+          <button
+            className="text-xl font-bold py-2 px-4 rounded bg-red-500 hover:bg-red-600 text-white"
+            onClick={handleLogout}
         >
           <FiLogOut />
-        </button>
+          </button>
+        ) : (
+          <button
+            className="text-xl font-bold py-2 px-4 rounded bg-red-500 hover:bg-red-600 text-white"
+            onClick={() => setIsLoginModalOpen(true)}
+          >
+            {t("login")}
+          </button>
+        )}
       </div>
     </div>
   );
