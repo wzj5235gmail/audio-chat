@@ -26,7 +26,7 @@ const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen }) => {
           className="px-4 py-2 border rounded-lg justify-self-start lg:hidden"
           onClick={() => setIsDrawerOpen(true)}
         >
-          {t("selectCharacter")}
+          {t("selectCharacterShort")}
         </button>
         <h1 className="text-xl font-semibold my-4 justify-self-center">
           {currCharacter.name}

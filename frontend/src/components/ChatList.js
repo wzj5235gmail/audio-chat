@@ -26,7 +26,7 @@ const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen }) => {
   return (
     <div className="flex flex-col lg:min-w-[400px]" style={{ height: "100vh" }}>
       {/* <header className="bg-red-500 text-white p-4 flex justify-center items-center"> */}
-      <header className="bg-red-500 text-white py-4 grid grid-cols-12">
+      <header className="bg-red-500 text-white py-4 grid grid-cols-12 items-center">
         <div className="col-span-3"></div>
         <h1 className="text-xl font-bold text-center col-span-6">{t("contacts")}</h1>
         <LanguageSwitcher />
