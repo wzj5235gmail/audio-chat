@@ -13,3 +13,5 @@ remote-bash.sh
 temp.sh
 upload_and_login.bat
 deployement.bat
+docker-compose-vagrant.yaml
+docker-compose-aws.yaml

@@ -29,7 +29,7 @@ const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen }) => {
           {t("selectCharacterShort")}
         </button>
         <h1 className="text-xl font-semibold my-4 justify-self-center">
-          {currCharacter.name}
+          {t(currCharacter.name)}
         </h1>
         {/* <LogoutDropdown handleLogout={handleLogout} /> */}
       </div>
