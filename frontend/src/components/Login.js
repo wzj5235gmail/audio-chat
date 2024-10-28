@@ -1,4 +1,6 @@
-import { useState, memo } from "react";
+import { useState, memo, useContext } from "react";
+import { LanguageContext } from "../contexts/LanguageContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Login = ({ setIsLogin }) => {
   const [loginForm, setLoginForm] = useState({ username: "", password: "" });
@@ -7,6 +9,7 @@ const Login = ({ setIsLogin }) => {
     password: "",
   });
   const [showRegister, setShowRegister] = useState(false);
+  const { t } = useContext(LanguageContext);
 
   function handleLogin(e) {
     e.preventDefault();
@@ -27,12 +30,12 @@ const Login = ({ setIsLogin }) => {
           setIsLogin(true);
           setLoginForm({ username: "", password: "" });
         } else {
-          alert("登录失败");
+          alert(t("loginFailed"));
         }
       })
       .catch((e) => {
         console.log(e);
-        alert("登录失败");
+        alert(t("loginFailed"));
       });
   }
 
@@ -56,16 +59,16 @@ const Login = ({ setIsLogin }) => {
       .then((res) => res.json())
       .then((res) => {
         if (res.username) {
-          alert(`注册成功，用户名：${res.username}`);
+          alert(`${t("registerSuccess")}${res.username}`);
           setRegisterForm({ username: "", password: "" });
           setShowRegister(false);
         } else {
-          alert("注册失败");
+          alert(t("registerFailed"));
         }
       })
       .catch((e) => {
         console.log(e);
-        alert("注册失败");
+        alert(t("registerFailed"));
       });
   }
 
@@ -74,14 +77,18 @@ const Login = ({ setIsLogin }) => {
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
         {!showRegister && (
           <>
-            <h2 className="text-2xl font-bold mb-6 text-center">登录</h2>
+            <div className="grid grid-cols-12 items-center mb-6">
+              <div className="col-span-3"></div>
+              <h2 className="text-2xl font-bold text-center col-span-6">{t("login")}</h2>
+              <LanguageSwitcher />
+            </div>
             <form onSubmit={handleLogin}>
               <div className="mb-4">
                 <label
                   className="block text-gray-700 text-sm font-bold mb-2 text-start"
                   htmlFor="username"
                 >
-                  用户名
+                  {t("username")}
                 </label>
                 <input
                   type="text"
@@ -100,7 +107,7 @@ const Login = ({ setIsLogin }) => {
                   className="block text-gray-700 text-sm font-bold mb-2 text-start"
                   htmlFor="password"
                 >
-                  密码
+                  {t("password")}
                 </label>
                 <input
                   type="password"
@@ -119,7 +126,7 @@ const Login = ({ setIsLogin }) => {
                   type="submit"
                   className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
                 >
-                  登录
+                  {t("loginButton")}
                 </button>
               </div>
             </form>
@@ -128,7 +135,7 @@ const Login = ({ setIsLogin }) => {
                 className="border hover:border-blue-500 text-blue-600 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
                 onClick={() => setShowRegister(true)}
               >
-                去注册
+                {t("goToRegister")}
               </button>
             </div>
             <div className="flex items-center justify-center mt-2">
@@ -136,21 +143,21 @@ const Login = ({ setIsLogin }) => {
                 className="border hover:border-blue-500 text-blue-600 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
                 onClick={handleTestUserLogin}
               >
-                Test User Login
+                {t("testUserLogin")}
               </button>
             </div>
           </>
         )}
         {showRegister && (
           <>
-            <h2 className="text-2xl font-bold mb-6 text-center">注册</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">{t("register")}</h2>
             <form onSubmit={handleRegister}>
               <div className="mb-4">
                 <label
                   className="block text-gray-700 text-sm font-bold mb-2 text-start"
                   htmlFor="username"
                 >
-                  用户名
+                  {t("username")}
                 </label>
                 <input
                   type="text"
@@ -169,7 +176,7 @@ const Login = ({ setIsLogin }) => {
                   className="block text-gray-700 text-sm font-bold mb-2 text-start"
                   htmlFor="password"
                 >
-                  密码
+                  {t("password")}
                 </label>
                 <input
                   type="password"
@@ -188,7 +195,7 @@ const Login = ({ setIsLogin }) => {
                   type="submit"
                   className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
                 >
-                  注册
+                  {t("registerButton")}
                 </button>
               </div>
               <div className="flex items-center justify-center mt-2">
@@ -196,7 +203,7 @@ const Login = ({ setIsLogin }) => {
                   className="border hover:border-red-500 text-red-600 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
                   onClick={() => setShowRegister(false)}
                 >
-                  去登录
+                  {t("goToLogin")}
                 </button>
               </div>
             </form>

@@ -1,4 +1,5 @@
-import { memo, useState, useEffect } from "react";
+import { memo, useState, useEffect, useContext } from "react";
+import { LanguageContext } from "../contexts/LanguageContext";
 
 const ChatListItem = ({
   character,
@@ -6,6 +7,7 @@ const ChatListItem = ({
   setIsChatting,
   setIsDrawerOpen,
 }) => {
+  const { t } = useContext(LanguageContext);
   const [msg, setMsg] = useState("");
   const [date, setDate] = useState("");
   const userId = localStorage.getItem("user_id");
@@ -35,7 +37,7 @@ const ChatListItem = ({
         }
       })
       .catch((e) => {
-        alert("获取历史记录失败");
+        alert(t("historyFailed"));
         console.log(e);
       });
   }, []);
@@ -61,7 +63,7 @@ const ChatListItem = ({
       <img src={character.avatar_uri} className="w-16 h-16 rounded-lg" />
       <div className="w-full">
         <div className="flex justify-between w-full">
-          <div className="text-xl">{character.name}</div>
+          <div className="text-xl">{t(character.name)}</div>
           <div className="text-gray-400 text-lg">{date}</div>
         </div>
         <div className="text-left text-gray-400 text-lg">{msg}</div>

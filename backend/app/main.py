@@ -10,10 +10,12 @@ from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
 from typing import Annotated
 from sqlalchemy.orm import Session
 from . import configs, crud, database, security, schemas
-from .utils import get_current_user_from_token, get_db, chat_with_history, translate_chain, client
+from .utils import get_current_user_from_token, get_db, chat_with_history, translate_chain_en, translate_chain_zh, client
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+
+
 
 dotenv.load_dotenv()
 
@@ -109,9 +111,14 @@ async def chat(
     ).content
 
     # Translate the bot's response
-    translation = translate_chain.invoke(
-        {"messages": [HumanMessage(content=chat_reply)]}
-    ).content
+    if message.language == "en":
+        translation = translate_chain_en.invoke(
+            {"messages": [HumanMessage(content=chat_reply)]}
+        ).content
+    elif message.language == "zh":
+        translation = translate_chain_zh.invoke(
+            {"messages": [HumanMessage(content=chat_reply)]}
+        ).content
     # Add the bot's response to database
     crud.create_conversation(
         db=db,

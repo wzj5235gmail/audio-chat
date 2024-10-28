@@ -1,13 +1,15 @@
-import { useState, useRef, useEffect, memo, useReducer } from "react";
+import { useState, useRef, useEffect, memo, useReducer, useContext } from "react";
 import { historyReducer } from "../reducers/historyReducer";
 import SendMsg from "./SendMsg";
 import ChatHistory from "./ChatHistory";
+import { LanguageContext } from "../contexts/LanguageContext";
 
 const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen }) => {
   const [history, dispatch] = useReducer(historyReducer, []);
   const audioRef = useRef(new Audio());
   const [isRecording, setIsRecording] = useState(false);
   // const [showDropdown, setShowDropdown] = useState(false);
+  const { t } = useContext(LanguageContext);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -24,7 +26,7 @@ const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen }) => {
           className="px-4 py-2 border rounded-lg justify-self-start lg:hidden"
           onClick={() => setIsDrawerOpen(true)}
         >
-          选择角色
+          {t("selectCharacter")}
         </button>
         <h1 className="text-xl font-semibold my-4 justify-self-center">
           {currCharacter.name}
@@ -45,7 +47,7 @@ const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen }) => {
       {isRecording && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 no-select">
           <span className="text-white text-lg">
-            正在录音...（手指上划可取消录音）
+            {t("recording")}
           </span>
         </div>
       )}

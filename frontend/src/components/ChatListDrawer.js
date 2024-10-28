@@ -1,6 +1,8 @@
 import { Drawer } from "flowbite-react";
 import ChatList from "./ChatList";
 import { useMediaQuery } from "react-responsive";
+
+
 export function ChatListDrawer({
   setCurrCharacter,
   setIsChatting,

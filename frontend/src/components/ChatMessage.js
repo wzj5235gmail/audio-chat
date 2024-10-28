@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, memo } from "react";
+import React, { useEffect, useRef, memo, useContext } from "react";
+import { LanguageContext } from "../contexts/LanguageContext";
 
 const ChatMessage = ({
   message,
@@ -9,6 +10,7 @@ const ChatMessage = ({
   isAudio,
   currCharacter,
 }) => {
+  const { t } = useContext(LanguageContext);
   const ref = useRef(null);
   const ref2 = useRef(null);
   const audioRef = useRef(new Audio());
@@ -57,7 +59,7 @@ const ChatMessage = ({
             onClick={handlePlayAudio}
           >
             {loading ? (
-              <span className=" text-gray-400">对方正在说话...</span>
+              <span className=" text-gray-400">{t("speaking")}</span>
             ) : (
               // <img src="voice-icon.png" alt="" className="h-4 w-4" />
               <img src="soundwave.gif" alt="" className="h-10 w-10" />

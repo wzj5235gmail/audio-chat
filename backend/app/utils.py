@@ -8,7 +8,7 @@ from fastapi import HTTPException, Request
 import time
 import os
 from . import configs, database, security, schemas
-
+from typing import Literal
 
 def get_current_user_from_token(request: Request):
     token = request.headers.get('Authorization')
@@ -50,10 +50,10 @@ def get_chat_with_history():
     )
     return with_message_history
 
-def get_translate_chain():
+def get_translate_chain(language: Literal["en", "zh"]):
     translate_prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", configs.translate_prompt,),
+            ("system", configs.translate_prompt[language]),
             MessagesPlaceholder(variable_name="messages"),
         ]
     )
@@ -70,4 +70,5 @@ client = OpenAI()
 
 chat_with_history = get_chat_with_history()
 
-translate_chain = get_translate_chain()
+translate_chain_en = get_translate_chain(language="en")
+translate_chain_zh = get_translate_chain(language="zh")

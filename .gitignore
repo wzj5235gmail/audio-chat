@@ -8,3 +8,8 @@ GPT_SoVITS/
 training_data/
 .env.frontend
 .env.backend
+audio-chat.tar.gz
+remote-bash.sh
+temp.sh
+upload_and_login.bat
+deployement.bat

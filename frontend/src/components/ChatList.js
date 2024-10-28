@@ -1,9 +1,12 @@
 import { memo } from "react";
 import ChatListItem from "./ChatListItem";
 import { FiLogOut } from "react-icons/fi";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { LanguageContext } from "../contexts/LanguageContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen }) => {
+  const { t } = useContext(LanguageContext);
   const [characters, setCharacters] = useState([]);
 
   useEffect(() => {
@@ -22,8 +25,11 @@ const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen }) => {
 
   return (
     <div className="flex flex-col lg:min-w-[400px]" style={{ height: "100vh" }}>
-      <header className="bg-red-500 text-white p-4 flex justify-center items-center">
-        <h1 className="text-xl font-bold text-center">联系人</h1>
+      {/* <header className="bg-red-500 text-white p-4 flex justify-center items-center"> */}
+      <header className="bg-red-500 text-white py-4 grid grid-cols-12">
+        <div className="col-span-3"></div>
+        <h1 className="text-xl font-bold text-center col-span-6">{t("contacts")}</h1>
+        <LanguageSwitcher />
       </header>{" "}
       <div className="flex-grow overflow-y-auto h-full">
         {characters.map((character) => (

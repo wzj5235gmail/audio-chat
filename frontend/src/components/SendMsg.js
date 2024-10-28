@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, memo, useContext } from "react";
 import RecordButton from "./RecordButton";
 import {
   gptModelPaths,
@@ -6,6 +6,8 @@ import {
   referTexts,
   sovitsModelPaths,
 } from "../configs/configs";
+import { LanguageContext } from "../contexts/LanguageContext";
+
 
 const SendMsg = ({
   audioRef,
@@ -17,6 +19,8 @@ const SendMsg = ({
 }) => {
   const [message, setMessage] = useState("");
   const [sendVoice, setSendVoice] = useState(false);
+  const { t } = useContext(LanguageContext);
+  const { language } = useContext(LanguageContext);
 
   const sendMessage = async (voiceMessage) => {
     if (sendVoice && typeof voiceMessage === "string") {
@@ -58,7 +62,7 @@ const SendMsg = ({
 
     const msgToSend = typeof voiceMessage === "string" ? voiceMessage : message;
     if (msgToSend.trim() === "") {
-      alert("不能发送空信息");
+      alert(t("emptyMessage"));
       dispatch({
         type: "DELETE_LAST_HISTORY",
       });
@@ -73,6 +77,7 @@ const SendMsg = ({
           },
           body: JSON.stringify({
             content: typeof voiceMessage === "string" ? voiceMessage : message,
+            language: language,
           }),
         }
       );
@@ -142,7 +147,7 @@ const SendMsg = ({
         audioRef.current.src = url;
         audioRef.current.play();
       } else {
-        alert("Failed to generate audio");
+        alert(t("failedToGenerateAudio"));
       }
     }
   };
@@ -178,7 +183,7 @@ const SendMsg = ({
             className=" p-2 border border-gray rounded-lg flex-grow"
             id="message"
             rows="1"
-            placeholder="请输入..."
+            placeholder={t("enterMessage")}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => {
@@ -192,7 +197,7 @@ const SendMsg = ({
             onClick={sendMessage}
             className="px-4 py-2 rounded-lg border-2 border-red-400 text-red-400"
           >
-            发送
+            {t("send")}
           </button>
         </div>
       )}

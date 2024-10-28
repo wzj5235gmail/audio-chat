@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-
+from typing import Literal
 
 class ConversationBase(BaseModel):
     message: str
@@ -40,3 +40,4 @@ class User(UserBase):
 
 class Message(BaseModel):
     content: str
+    language: Literal["en", "zh"]

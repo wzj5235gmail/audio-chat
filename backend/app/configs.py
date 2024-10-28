@@ -48,8 +48,21 @@ chat_prompt = {
 }
 
 
-translate_prompt = '''
-    请将用户发送的日语文本翻译成自然、流畅的中文。注意事项：
+translate_prompt = {
+    'en':'''
+    Please translate the following text into natural and fluent English. Notice:
+    1. Keep the original tone and style, but avoid literal translation.
+    2. Keep the original cultural context and idioms.
+    3. Keep the original names and proper nouns.
+    4. If there are any cultural concepts unique to Japan, you can explain them briefly.
+    5. For idioms or proverbs, try to find the corresponding expressions in English.
+    6. Keep the original emotional color and tone.
+    7. If there are any ambiguities in the original text, choose the most reasonable explanation for translation.
+
+    Please ensure the translation is natural and fluent, as if it were an original English text written by a native speaker.
+    ''',
+    'zh':'''
+    请将用户发送的英文文本翻译成自然、流畅的中文。注意事项：
     1. 保持原文的语气和风格，但避免生硬的直译
     2. 适当考虑中国文化背景，使用地道的中文表达
     3. 保留原文中的人名、地名等专有名词
@@ -59,7 +72,8 @@ translate_prompt = '''
     7. 如果原文有歧义，请选择最合理的解释进行翻译
 
     请确保翻译结果自然流畅，就像是中文母语者的原创文本。
-'''
+    '''
+}
 
 
 max_chat_history = 20

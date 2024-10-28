@@ -1,18 +1,20 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useContext } from "react";
 import Login from "./Login";
 import ChatMain from "./ChatMain";
 import ChatListDrawer from "./ChatListDrawer";
+import { LanguageContext } from "../contexts/LanguageContext";
 
 const Main = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isChatting, setIsChatting] = useState(false);
   const [currCharacter, setCurrCharacter] = useState({});
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const { t } = useContext(LanguageContext);
   // if not token or token expired, change login state
   useEffect(() => {
     const token = localStorage.getItem("token");
     const expires_at = localStorage.getItem("token_expire_at");
-    if (!token || Date.now() / 1000 > Number(expires_at)) {
+    if (!token || !expires_at || Date.now() / 1000 > Number(expires_at)) {
       setIsLogin(false);
     }
   }, []);
@@ -47,7 +49,7 @@ const Main = () => {
                   className="text-xl font-bold py-2 px-4 rounded-full bg-red-500 hover:bg-red-600 text-white"
                   onClick={() => setIsDrawerOpen(true)}
                 >
-                  选择一个角色开始聊天
+                  {t("selectCharacter")}
                 </button>
               </div>
             )}
