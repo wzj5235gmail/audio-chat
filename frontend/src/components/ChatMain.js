@@ -4,7 +4,7 @@ import SendMsg from "./SendMsg";
 import ChatHistory from "./ChatHistory";
 import { LanguageContext } from "../contexts/LanguageContext";
 
-const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen }) => {
+const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen, isLogin, setIsLoginModalOpen }) => {
   const [history, dispatch] = useReducer(historyReducer, []);
   const audioRef = useRef(new Audio());
   const [isRecording, setIsRecording] = useState(false);
@@ -42,7 +42,7 @@ const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen }) => {
       )} */}
       <ChatHistory {...{ history, dispatch, currCharacter }} />
       <SendMsg
-        {...{ setIsRecording, audioRef, dispatch, history, currCharacter }}
+        {...{ setIsRecording, audioRef, dispatch, history, currCharacter, isLogin, setIsLoginModalOpen }}
       />
       {isRecording && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 no-select">

@@ -46,6 +46,8 @@ const Main = () => {
               setIsLogin,
               setIsChatting,
               setIsDrawerOpen,
+              isLogin,
+              setIsLoginModalOpen,
             }}
           />
         ) : (

@@ -16,6 +16,8 @@ const SendMsg = ({
   dispatch,
   history,
   currCharacter,
+  isLogin,
+  setIsLoginModalOpen,
 }) => {
   const [message, setMessage] = useState("");
   const [sendVoice, setSendVoice] = useState(false);
@@ -23,6 +25,10 @@ const SendMsg = ({
   const { language } = useContext(LanguageContext);
 
   const sendMessage = async (voiceMessage) => {
+    if (!isLogin) {
+      setIsLoginModalOpen(true);
+      return;
+    }
     if (sendVoice && typeof voiceMessage === "string") {
       if (voiceMessage.trim() !== "") {
         if (history.length > 0) {

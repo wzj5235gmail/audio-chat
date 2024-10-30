@@ -16,3 +16,4 @@ deployement.bat
 docker-compose-vagrant.yaml
 docker-compose-aws.yaml
 audio_output/
+deployments/
