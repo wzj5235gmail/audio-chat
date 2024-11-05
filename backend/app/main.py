@@ -295,8 +295,6 @@ def get_conversations_handler(
     limit: int,
     database_query_count = database_query_count,
 ):
-    database_query_count[0] += 1
-    print(f"database_query_count: {database_query_count[0]}")
     conversations = crud.get_conversations(
         db=db,
         user_id=user_id,
@@ -304,6 +302,8 @@ def get_conversations_handler(
         skip=skip,
         limit=limit
     )
+    database_query_count[0] += 1
+    print(f"database_query_count: {database_query_count[0]}")
     conversations.reverse()
     return conversations
 
