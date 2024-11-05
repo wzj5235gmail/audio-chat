@@ -16,6 +16,9 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import asyncio
 from fastapi_cache.decorator import cache
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from redis import asyncio as aioredis
 
 
 
@@ -40,6 +43,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 在创建 app 后，添加缓存初始化
+@app.on_event("startup")
+async def startup():
+    redis = aioredis.from_url(os.environ.get("REDIS_URL", "redis://localhost:6379"))
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 
 def chat_handler(
     request: Request, 
