@@ -26,3 +26,24 @@ jobs:
 
     - name: Push backend Docker image to Docker Hub
       run: docker push wzj5235/audio-chat-backend:latest
+
+    - name: Setup SSH
+      env:
+        SSH_KEY: ${{ secrets.SSH_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Run commands on server
+      env:
+        SSH_HOST: ${{ secrets.SSH_HOST }}
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_PORT: ${{ secrets.SSH_PORT }}
+      run: |
+        ssh -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+        docker compose down
+        docker compose pull
+        docker compose up -d
+        EOF
