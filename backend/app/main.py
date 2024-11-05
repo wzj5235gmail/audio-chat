@@ -300,7 +300,7 @@ def get_conversations_handler(
     return conversations
 
 @app.get("/api/conversations", response_model=list[schemas.Conversation])
-@cache(expire=5)
+@cache(expire=60)
 async def get_conversations(
     user_id: int,
     character_id: int,
