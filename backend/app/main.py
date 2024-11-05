@@ -20,7 +20,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
 
-
+database_query_count = 0
 
 
 dotenv.load_dotenv()
@@ -289,6 +289,8 @@ def get_conversations_handler(
     skip: int,
     limit: int,
 ):
+    database_query_count += 1
+    print(f"database_query_count: {database_query_count}")
     conversations = crud.get_conversations(
         db=db,
         user_id=user_id,
