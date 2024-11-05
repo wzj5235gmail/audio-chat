@@ -7,7 +7,7 @@ from langchain_core.messages import HumanMessage
 from langchain_community.chat_message_histories import RedisChatMessageHistory
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
-from typing import Annotated
+from typing import Annotated, AsyncIterator
 from sqlalchemy.orm import Session
 from . import configs, crud, database, security, schemas
 from .utils import get_current_user_from_token, get_db, chat_with_history, translate_chain_en, translate_chain_zh, client
@@ -20,6 +20,8 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
 from contextlib import asynccontextmanager
+
+
 database_query_count = [0]
 
 
