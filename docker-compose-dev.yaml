@@ -12,7 +12,8 @@ services:
   #     - frontend/.env
 
   backend:
-    image: wzj5235/audio-chat-backend:latest
+    # image: wzj5235/audio-chat-backend:latest
+    image: backend:v2
     ports:
       - "8000:8000"
     depends_on:

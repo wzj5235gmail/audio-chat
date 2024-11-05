@@ -14,6 +14,7 @@ from .utils import get_current_user_from_token, get_db, chat_with_history, trans
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+import asyncio
 
 
 
@@ -38,9 +39,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/api/chat/{character_id}")
-@limiter.limit("10/minute")
-async def chat(
+def chat_handler(
     request: Request, 
     character_id: int,
     message: schemas.Message,
@@ -133,9 +132,18 @@ async def chat(
     return {'message': chat_reply, 'translation': translation}
 
 
-@app.post("/api/stt")
+@app.post("/api/chat/{character_id}")
 @limiter.limit("10/minute")
-async def stt(
+async def chat(
+    request: Request, 
+    character_id: int,
+    message: schemas.Message,
+    db: Session = Depends(get_db)
+):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, chat_handler, request, character_id, message, db)
+
+def stt_handler(
     request: Request,
     audio: Annotated[UploadFile, File()],
 ):
@@ -165,6 +173,23 @@ async def stt(
         "transcription": transcription.text,
     }
 
+@app.post("/api/stt")
+@limiter.limit("10/minute")
+async def stt(
+    request: Request,
+    audio: Annotated[UploadFile, File()],
+):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, stt_handler, request, audio)
+
+
+def get_characters_handler(
+    db: Session,
+    skip: int,
+    limit: int,
+):
+    return crud.get_characters(db, skip=skip, limit=limit)
+
 
 @app.get("/api/characters")
 async def get_characters(
@@ -172,16 +197,13 @@ async def get_characters(
     skip: int = 0,
     limit: int = 100,
 ):
-    characters = crud.get_characters(db, skip=skip, limit=limit)
-    return characters
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, get_characters_handler, db, skip, limit)
 
 
-@app.post("/api/users", response_model=schemas.User)
-@limiter.limit("5/minute")
-def create_user(
-    request: Request,
+def create_user_handler(
+    db: Session,
     user: schemas.UserCreate,
-    db: Session = Depends(get_db),
 ):
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:
@@ -189,60 +211,97 @@ def create_user(
     return crud.create_user(db=db, user=user)
 
 
+@app.post("/api/users", response_model=schemas.User)
+@limiter.limit("5/minute")
+async def create_user(
+    request: Request,
+    user: schemas.UserCreate,
+    db: Session = Depends(get_db),
+):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, create_user_handler, db, user)
+
+
+def read_users_handler(
+    db: Session,
+    skip: int,
+    limit: int,
+):
+    return crud.get_users(db, skip=skip, limit=limit)
+
 @app.get("/api/users", response_model=list[schemas.User])
-def read_users(
+async def read_users(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    users = crud.get_users(db, skip=skip, limit=limit)
-    return users
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, read_users_handler, db, skip, limit)
 
 
-@app.get("/api/users/{user_id}", response_model=schemas.User)
-def read_user(
+def read_user_handler(
+    db: Session,
     user_id: int,
-    db: Session = Depends(get_db),
 ):
     db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-
-@app.post("/api/conversations", response_model=schemas.Conversation)
-def create_conversation(
-    conversation: schemas.ConversationCreate,
+@app.get("/api/users/{user_id}", response_model=schemas.User)
+async def read_user(
+    user_id: int,
     db: Session = Depends(get_db),
+):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, read_user_handler, db, user_id)
+
+
+def create_conversation_handler(
+    db: Session,
+    conversation: schemas.ConversationCreate,
 ):
     return crud.create_conversation(db=db, conversation=conversation.model_dump())
 
+@app.post("/api/conversations", response_model=schemas.Conversation)
+async def create_conversation(
+    conversation: schemas.ConversationCreate,
+    db: Session = Depends(get_db),
+):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, create_conversation_handler, db, conversation)
+
+def get_conversations_handler(
+    db: Session,
+    user_id: int,
+    character_id: int,
+    skip: int,
+    limit: int,
+):
+    conversations = crud.get_conversations(
+        db=db,
+        user_id=user_id,
+        character_id=character_id,
+        skip=skip,
+        limit=limit
+    )
+    conversations.reverse()
+    return conversations
 
 @app.get("/api/conversations", response_model=list[schemas.Conversation])
-def get_conversations(
+async def get_conversations(
     user_id: int,
     character_id: int,
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
 ):
-    conversations = crud.get_conversations(
-        db=db, 
-        user_id=user_id, 
-        character_id=character_id,
-        skip=skip, 
-        limit=limit
-    )
-    conversations.reverse()
-    return conversations
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, get_conversations_handler, db, user_id, character_id, skip, limit)
 
-
-@app.post("/api/token")
-@limiter.limit("100/minute")
-def create_token(
-    request: Request,
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db),
+def create_token_handler(
+    db: Session,
+    form_data: OAuth2PasswordRequestForm,
 ):
     user = crud.get_user_by_username(db, username=form_data.username)
     if not user:
@@ -257,6 +316,16 @@ def create_token(
         "user_id": user.id,
         "username": user.username,
         }
+
+@app.post("/api/token")
+@limiter.limit("100/minute")
+async def create_token(
+    request: Request,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, create_token_handler, db, form_data)
 
 if __name__ == "__main__":
     import uvicorn
