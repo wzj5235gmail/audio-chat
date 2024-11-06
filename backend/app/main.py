@@ -64,7 +64,7 @@ async def cache_conversations(request: Request, call_next):
         response_content = b"".join(response_body)
         
         # 缓存响应内容
-        await redis.set(cache_key, response_content)
+        await redis.set(cache_key, response_content, ex=10)
         
         # 返回新的响应
         return Response(
