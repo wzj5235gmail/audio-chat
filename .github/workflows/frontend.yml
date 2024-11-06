@@ -43,6 +43,7 @@ jobs:
 
 
     - name: Use scp to upload frontend
+      working-directory: ./frontend
       env:
         SSH_KEY: ${{ secrets.SSH_KEY }}
       run: |
