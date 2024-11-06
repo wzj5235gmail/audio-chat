@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from langchain_core.messages import HumanMessage
 from langchain_community.chat_message_histories import RedisChatMessageHistory
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile, Response
 from typing import Annotated, AsyncIterator
 from sqlalchemy.orm import Session
 from . import configs, crud, database, security, schemas
@@ -15,15 +15,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import asyncio
-from fastapi_cache.decorator import cache
-from fastapi_cache import FastAPICache
-from fastapi_cache.backends.redis import RedisBackend
-from redis import asyncio as aioredis
-from contextlib import asynccontextmanager
-
-
-database_query_count = [0]
-
+from .redis import redis
 
 dotenv.load_dotenv()
 
@@ -35,14 +27,7 @@ crud.create_character_if_not_exists(db=next(get_db()), name="霞之丘诗羽", a
 
 limiter = Limiter(key_func=get_remote_address)
 
-@asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    redis = aioredis.from_url(os.environ.get("REDIS_URL", "redis://localhost:6379"))
-    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
-    yield
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -53,6 +38,41 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def cache_conversations(request: Request, call_next):
+    if request.method == "GET" and request.url.path == "/api/conversations":
+        user_id = request.query_params.get("user_id")
+        character_id = request.query_params.get("character_id")
+        skip = request.query_params.get("skip")
+        limit = request.query_params.get("limit")
+        
+        # 检查缓存
+        cache_key = f"conversations_{user_id}_{character_id}_{skip}_{limit}"
+        cached_data = await redis.get(cache_key)
+        if cached_data:
+            return Response(
+                content=cached_data,
+                media_type="application/json"
+            )
+            
+        # 获取响应
+        response = await call_next(request)
+        
+        # 读取响应内容并缓存
+        response_body = [chunk async for chunk in response.body_iterator]
+        response_content = b"".join(response_body)
+        
+        # 缓存响应内容
+        await redis.set(cache_key, response_content)
+        
+        # 返回新的响应
+        return Response(
+            content=response_content,
+            media_type=response.media_type
+        )
+        
+    return await call_next(request)
 
 
 def chat_handler(
@@ -293,8 +313,8 @@ def get_conversations_handler(
     character_id: int,
     skip: int,
     limit: int,
-    database_query_count = database_query_count,
 ):
+    print("querying database...")
     conversations = crud.get_conversations(
         db=db,
         user_id=user_id,
@@ -302,13 +322,10 @@ def get_conversations_handler(
         skip=skip,
         limit=limit
     )
-    database_query_count[0] += 1
-    print(f"database_query_count: {database_query_count[0]}")
     conversations.reverse()
     return conversations
 
 @app.get("/api/conversations", response_model=list[schemas.Conversation])
-@cache(expire=60)
 async def get_conversations(
     user_id: int,
     character_id: int,

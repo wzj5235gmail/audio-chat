@@ -13,7 +13,7 @@ services:
 
   backend:
     # image: wzj5235/audio-chat-backend:latest
-    image: backend:v4
+    image: backend:test
     ports:
       - "8000:8000"
     depends_on:
