@@ -17,7 +17,7 @@ const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen, isLogin, setIsLo
     if (!token || Date.now() / 1000 > Number(expires_at)) {
       setIsLogin(false);
     }
-  }, []);
+  }, [setIsLogin]);
 
   return (
     <div className="flex flex-col h-full">

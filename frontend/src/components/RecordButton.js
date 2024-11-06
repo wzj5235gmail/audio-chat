@@ -138,7 +138,7 @@ const RecordButton = ({ setHistory, sendMessage, setIsRecording }) => {
       readyRef.current = true;
     }
     setup();
-  }, []);
+  }, [setupMediaRecorder]);
 
   const handleStartRecord = async (e) => {
     isCancelledRef.current = false;
