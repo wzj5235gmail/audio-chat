@@ -31,7 +31,7 @@ const ChatListItem = ({
         const day = dateFromTs.getDate();
         const hour = dateFromTs.getHours();
         const minute = dateFromTs.getMinutes();
-        setDate(isToday(dateFromTs) ? `${month}/${day}` : `${hour}:${minute}`);
+        setDate(isToday(dateFromTs) ? `${hour}:${minute}` : `${month}/${day}`);
         // format message
         const message = data[0].message;
         if (message.length > 15) {
