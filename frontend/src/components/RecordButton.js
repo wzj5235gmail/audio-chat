@@ -129,7 +129,7 @@ const RecordButton = ({ setHistory, sendMessage, setIsRecording }) => {
         }
       };
     };
-    
+
     async function setup() {
       await setupMediaRecorder();
       recordBtnRef.current.classList.remove("border-gray-200");
@@ -139,7 +139,7 @@ const RecordButton = ({ setHistory, sendMessage, setIsRecording }) => {
       readyRef.current = true;
     }
     setup();
-  }, []);
+  }, [sendMessage, setHistory]);
 
   const handleStartRecord = async (e) => {
     isCancelledRef.current = false;
