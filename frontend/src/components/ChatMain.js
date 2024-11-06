@@ -32,13 +32,6 @@ const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen, isLogin, setIsLo
         </h1>
         {/* <LogoutDropdown handleLogout={handleLogout} /> */}
       </div>
-      {/* {showDropdown && (
-        <div className="absolute">
-          <button onClick={handleLogout} className="text-white">
-            登出
-          </button>
-        </div>
-      )} */}
       <ChatHistory {...{ history, dispatch, currCharacter }} />
       <SendMsg
         {...{ setIsRecording, audioRef, dispatch, history, currCharacter, isLogin, setIsLoginModalOpen }}

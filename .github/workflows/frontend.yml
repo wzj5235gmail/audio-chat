@@ -59,6 +59,7 @@ jobs:
         cd /root
         tar -xzvf frontend.tar.gz
         rm frontend.tar.gz
+        rm -rf /var/www/html/*
         mv build/* /var/www/html/
         rm -rf build
         systemctl restart nginx
