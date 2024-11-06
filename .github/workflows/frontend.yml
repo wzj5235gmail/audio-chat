@@ -1,0 +1,56 @@
+name: Frontend CI
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build
+      run: npm run build
+
+    - name: Tar frontend
+      run: tar -czvf frontend.tar.gz build
+
+    - name: Setup SSH
+      env:
+        SSH_KEY: ${{ secrets.SSH_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+
+    - name: Use scp to upload frontend
+      env:
+        SSH_KEY: ${{ secrets.SSH_KEY }}
+      run: |
+        scp -i ~/.ssh/id_rsa frontend.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/root/audio-chat-frontend/frontend.tar.gz
+
+    - name: Run commands on server
+      env:
+        SSH_HOST: ${{ secrets.SSH_HOST }}
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_PORT: ${{ secrets.SSH_PORT }}
+      run: |
+        ssh -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+        cd /root/audio-chat-frontend
+        tar -xzvf frontend.tar.gz
+        rm frontend.tar.gz
+        mv build/* /var/www/html/
+        rm -rf build
+        systemctl restart nginx
+        EOF

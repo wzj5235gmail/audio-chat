@@ -46,8 +46,8 @@ async def cache_conversations(request: Request, call_next):
         character_id = request.query_params.get("character_id")
         skip = request.query_params.get("skip")
         limit = request.query_params.get("limit")
-        
-        # 检查缓存
+
+        # check if the conversations are cached
         cache_key = f"conversations_{user_id}_{character_id}_{skip}_{limit}"
         cached_data = await redis.get(cache_key)
         if cached_data:
@@ -55,23 +55,23 @@ async def cache_conversations(request: Request, call_next):
                 content=cached_data,
                 media_type="application/json"
             )
-            
-        # 获取响应
+
+        # get the response
         response = await call_next(request)
-        
-        # 读取响应内容并缓存
+
+        # read the response content and cache it
         response_body = [chunk async for chunk in response.body_iterator]
         response_content = b"".join(response_body)
-        
-        # 缓存响应内容
-        await redis.set(cache_key, response_content, ex=10)
-        
-        # 返回新的响应
+
+        # cache the response content
+        await redis.set(cache_key, response_content, ex=int(os.getenv("CACHE_EXPIRE_TIME_SECONDS")))
+
+        # return the new response
         return Response(
             content=response_content,
             media_type=response.media_type
         )
-        
+
     return await call_next(request)
 
 
@@ -219,11 +219,31 @@ async def stt(
     return await loop.run_in_executor(None, stt_handler, request, audio)
 
 
+@app.middleware("http")
+async def cache_characters(request: Request, call_next):
+    if request.method == "GET" and request.url.path == "/api/characters":
+        cached_characters = await redis.get("characters")
+        if cached_characters:
+            return Response(
+                content=cached_characters,
+                media_type="application/json"
+            )
+        response = await call_next(request)
+        response_body = [chunk async for chunk in response.body_iterator]
+        response_content = b"".join(response_body)
+        await redis.set("characters", response_content, ex=int(os.getenv("CACHE_EXPIRE_TIME_SECONDS")))
+        return Response(
+            content=response_content,
+            media_type=response.media_type
+        )
+    return await call_next(request)
+
 def get_characters_handler(
     db: Session,
     skip: int,
     limit: int,
-):
+) -> list[schemas.Character]:
+    print("querying database...")
     return crud.get_characters(db, skip=skip, limit=limit)
 
 
@@ -232,7 +252,7 @@ async def get_characters(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-):
+) -> list[schemas.Character]:
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, get_characters_handler, db, skip, limit)
 
@@ -240,7 +260,7 @@ async def get_characters(
 def create_user_handler(
     db: Session,
     user: schemas.UserCreate,
-):
+) -> schemas.User:
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -262,7 +282,7 @@ def read_users_handler(
     db: Session,
     skip: int,
     limit: int,
-):
+) -> list[schemas.User]:
     return crud.get_users(db, skip=skip, limit=limit)
 
 @app.get("/api/users", response_model=list[schemas.User])
@@ -270,7 +290,7 @@ async def read_users(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
-):
+) -> list[schemas.User]:
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, read_users_handler, db, skip, limit)
 
@@ -278,7 +298,7 @@ async def read_users(
 def read_user_handler(
     db: Session,
     user_id: int,
-):
+) -> schemas.User:
     db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -288,7 +308,7 @@ def read_user_handler(
 async def read_user(
     user_id: int,
     db: Session = Depends(get_db),
-):
+) -> schemas.User:
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, read_user_handler, db, user_id)
 
@@ -296,7 +316,7 @@ async def read_user(
 def create_conversation_handler(
     db: Session,
     conversation: schemas.ConversationCreate,
-):
+) -> schemas.Conversation:
     return crud.create_conversation(db=db, conversation=conversation.model_dump())
 
 @app.post("/api/conversations", response_model=schemas.Conversation)
@@ -313,7 +333,7 @@ def get_conversations_handler(
     character_id: int,
     skip: int,
     limit: int,
-):
+) -> list[schemas.Conversation]:
     print("querying database...")
     conversations = crud.get_conversations(
         db=db,
@@ -339,7 +359,7 @@ async def get_conversations(
 def create_token_handler(
     db: Session,
     form_data: OAuth2PasswordRequestForm,
-):
+) -> dict:
     user = crud.get_user_by_username(db, username=form_data.username)
     if not user:
         raise HTTPException(status_code=400, detail="Invalid username or password")

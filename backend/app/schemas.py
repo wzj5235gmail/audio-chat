@@ -41,3 +41,13 @@ class User(UserBase):
 class Message(BaseModel):
     content: str
     language: Literal["en", "zh"]
+
+class Character(BaseModel):
+    id: int
+    name: str
+    avatar_uri: str
+    gpt_model_path: str
+    sovits_model_path: str
+    refer_path: str
+    refer_text: str
+

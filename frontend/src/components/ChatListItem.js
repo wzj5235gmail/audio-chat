@@ -1,6 +1,11 @@
 import { memo, useState, useEffect, useContext } from "react";
 import { LanguageContext } from "../contexts/LanguageContext";
 
+function isToday(date) {
+  const today = new Date();
+  return date.getDate() === today.getDate();
+}
+
 const ChatListItem = ({
   character,
   setCurrCharacter,
@@ -22,12 +27,11 @@ const ChatListItem = ({
         if (data.length === 0) return;
         // format date
         const dateFromTs = new Date(Number(data[0].created_at));
-        const year = dateFromTs.getFullYear();
         const month = dateFromTs.getMonth() + 1;
         const day = dateFromTs.getDate();
         const hour = dateFromTs.getHours();
         const minute = dateFromTs.getMinutes();
-        setDate(`${year}/${month}/${day} ${hour}:${minute}`);
+        setDate(isToday(dateFromTs) ? `${month}/${day}` : `${hour}:${minute}`);
         // format message
         const message = data[0].message;
         if (message.length > 15) {
@@ -46,13 +50,6 @@ const ChatListItem = ({
     setCurrCharacter(character);
     setIsChatting(true);
     setIsDrawerOpen(false);
-    // fetch(
-    //   `${process.env.REACT_APP_HOST}/api/sync_db_to_redis/${userId}/${character.id}`
-    // )
-    //   .then((res) => res.json())
-    //   .then((data) => {
-    //     console.log(data);
-    //   });
   };
 
   return (
