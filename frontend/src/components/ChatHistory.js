@@ -18,7 +18,6 @@ const ChatHistory = ({ history, dispatch, currCharacter }) => {
           role: item.role,
           translation: item.translation,
         }));
-        // console.log(historyFromDB);
         dispatch({ type: "INIT_HISTORY", payload: historyFromDB });
       })
       .catch((e) => {
