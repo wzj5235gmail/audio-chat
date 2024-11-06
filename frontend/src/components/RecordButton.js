@@ -38,97 +38,98 @@ const RecordButton = ({ setHistory, sendMessage, setIsRecording }) => {
     }
   };
 
-  const setupMediaRecorder = async () => {
-    let voiceMessage = "";
-    const mimeType = getMimeType();
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      alert(
-        "Your browser does not support audio recording. Please use a modern browser."
-      );
-      return;
-    }
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorderRef.current = new MediaRecorder(stream, { mimeType });
-    mediaRecorderRef.current.ondataavailable = (event) => {
-      if (event.data.size > 0) {
-        // console.log("new audio chunk: ", event.data);
-        audioChunksRef.current.push(event.data);
-      }
-    };
-    mediaRecorderRef.current.onstop = async () => {
-      recordBtnRef.current.classList.remove("scale-90");
-      recordBtnRef.current.classList.remove("bg-red-400");
-      recordBtnRef.current.classList.remove("text-white");
-      recordBtnRef.current.classList.add("text-red-400");
-
-      endTime.current = Date.now();
-      const recordingDuration = (endTime.current - startTime.current) / 1000;
-      if (recordingDuration < 0.5) {
-        // console.log("录音长度小于0.5秒,清空audioChunks");
-        audioChunksRef.current = [];
-        // console.log("audio chunks", audioChunksRef.current);
-        alert("录音失败：录音长度小于0.5秒");
-        return;
-      }
-
-      if (isCancelledRef.current) {
-        // console.log("取消录音，清空audioChunks");
-        audioChunksRef.current = [];
-        // console.log("audio chunks", audioChunksRef.current);
-        return;
-      }
-      // console.log("录制完成时的audio chunks：", audioChunksRef.current);
-      const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
-      // console.log('录制完成，清空audioChunks');
-      // console.log("audio chunks", audioChunksRef.current);
-      audioChunksRef.current = [];
-      if (audioBlob.size === 0) {
-        console.error("Audio blob is empty");
-        return;
-      }
-      const audioUrl = URL.createObjectURL(audioBlob);
-      // console.log(audioUrl);
-      setHistory((prevHistory) => [
-        ...prevHistory,
-        {
-          time: Date.now(),
-          role: "user",
-          message: "...",
-          audioUrl,
-          isAudio: true,
-        },
-      ]);
-      // 创建 FormData 对象并添加音频文件
-      const formData = new FormData();
-      formData.append(
-        "audio",
-        audioBlob,
-        mimeType === "audio/webm" ? "recording.webm" : "recording.mp4"
-      );
-      // 发送请求到 API
-      try {
-        // const response = await fetch(`/api/stt`, {
-        const response = await fetch(`/api/stt`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: formData,
-        });
-        if (response.ok) {
-          const data = await response.json();
-          voiceMessage = data.transcription;
-          sendMessage(voiceMessage);
-        } else {
-          console.error("Failed to upload audio file");
-        }
-      } catch (error) {
-        console.error("Error while uploading audio file:", error);
-      }
-    };
-  };
-
+  
   useEffect(() => {
+    const setupMediaRecorder = async () => {
+      let voiceMessage = "";
+      const mimeType = getMimeType();
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert(
+          "Your browser does not support audio recording. Please use a modern browser."
+        );
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          // console.log("new audio chunk: ", event.data);
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      mediaRecorderRef.current.onstop = async () => {
+        recordBtnRef.current.classList.remove("scale-90");
+        recordBtnRef.current.classList.remove("bg-red-400");
+        recordBtnRef.current.classList.remove("text-white");
+        recordBtnRef.current.classList.add("text-red-400");
+  
+        endTime.current = Date.now();
+        const recordingDuration = (endTime.current - startTime.current) / 1000;
+        if (recordingDuration < 0.5) {
+          // console.log("录音长度小于0.5秒,清空audioChunks");
+          audioChunksRef.current = [];
+          // console.log("audio chunks", audioChunksRef.current);
+          alert("录音失败：录音长度小于0.5秒");
+          return;
+        }
+  
+        if (isCancelledRef.current) {
+          // console.log("取消录音，清空audioChunks");
+          audioChunksRef.current = [];
+          // console.log("audio chunks", audioChunksRef.current);
+          return;
+        }
+        // console.log("录制完成时的audio chunks：", audioChunksRef.current);
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        // console.log('录制完成，清空audioChunks');
+        // console.log("audio chunks", audioChunksRef.current);
+        audioChunksRef.current = [];
+        if (audioBlob.size === 0) {
+          console.error("Audio blob is empty");
+          return;
+        }
+        const audioUrl = URL.createObjectURL(audioBlob);
+        // console.log(audioUrl);
+        setHistory((prevHistory) => [
+          ...prevHistory,
+          {
+            time: Date.now(),
+            role: "user",
+            message: "...",
+            audioUrl,
+            isAudio: true,
+          },
+        ]);
+        // 创建 FormData 对象并添加音频文件
+        const formData = new FormData();
+        formData.append(
+          "audio",
+          audioBlob,
+          mimeType === "audio/webm" ? "recording.webm" : "recording.mp4"
+        );
+        // 发送请求到 API
+        try {
+          // const response = await fetch(`/api/stt`, {
+          const response = await fetch(`/api/stt`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: formData,
+          });
+          if (response.ok) {
+            const data = await response.json();
+            voiceMessage = data.transcription;
+            sendMessage(voiceMessage);
+          } else {
+            console.error("Failed to upload audio file");
+          }
+        } catch (error) {
+          console.error("Error while uploading audio file:", error);
+        }
+      };
+    };
+    
     async function setup() {
       await setupMediaRecorder();
       recordBtnRef.current.classList.remove("border-gray-200");
@@ -138,7 +139,7 @@ const RecordButton = ({ setHistory, sendMessage, setIsRecording }) => {
       readyRef.current = true;
     }
     setup();
-  }, [setupMediaRecorder]);
+  }, []);
 
   const handleStartRecord = async (e) => {
     isCancelledRef.current = false;
