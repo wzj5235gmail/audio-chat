@@ -30,7 +30,6 @@ const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen, isLogin, setIsLo
         <h1 className="text-xl font-semibold my-4 justify-self-center">
           {t(currCharacter.name)}
         </h1>
-        {/* <LogoutDropdown handleLogout={handleLogout} /> */}
       </div>
       <ChatHistory {...{ history, dispatch, currCharacter }} />
       <SendMsg
