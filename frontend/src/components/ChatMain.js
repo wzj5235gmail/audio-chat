@@ -8,7 +8,6 @@ const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen, isLogin, setIsLo
   const [history, dispatch] = useReducer(historyReducer, []);
   const audioRef = useRef(new Audio());
   const [isRecording, setIsRecording] = useState(false);
-  // const [showDropdown, setShowDropdown] = useState(false);
   const { t } = useContext(LanguageContext);
 
   useEffect(() => {
