@@ -101,7 +101,6 @@ const SendMsg = ({
           },
         });
       }
-      const id = currCharacter.id;
       const resultToAudio = result.replace(/[\r|\n|\\s]+/g, "");
       const audioResponse = await fetch(
         `/voice_generate`,
