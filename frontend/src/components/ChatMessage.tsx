@@ -1,7 +1,18 @@
 import React, { useEffect, useRef, memo, useContext } from "react";
 import { LanguageContext } from "../contexts/LanguageContext";
+import { Character } from "../interfaces/interfaces";
 
-const ChatMessage = ({
+interface ChatMessageProps {
+  message: string;
+  isUser: boolean;
+  audioUrl?: string;
+  loading?: boolean;
+  translation?: string;
+  isAudio?: boolean;
+  currCharacter: Character;
+}
+
+const ChatMessage: React.FC<ChatMessageProps> = ({
   message,
   isUser,
   audioUrl,
@@ -11,9 +22,9 @@ const ChatMessage = ({
   currCharacter,
 }) => {
   const { t } = useContext(LanguageContext);
-  const ref = useRef(null);
-  const ref2 = useRef(null);
-  const audioRef = useRef(new Audio());
+  const ref = useRef<HTMLDivElement>(null);
+  const ref2 = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(new Audio());
 
   useEffect(() => {
     if (ref.current) {
@@ -33,9 +44,9 @@ const ChatMessage = ({
   }, [isUser]);
 
   const handlePlayAudio = () => {
-    audioRef.current.src = audioUrl;
+    audioRef.current.src = audioUrl || '';
     audioRef.current.play().catch((error) => {
-      alert("Error playing audio:", error);
+      alert(`Error playing audio: ${error}`);
     });
   };
 

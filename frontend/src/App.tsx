@@ -1,7 +1,9 @@
 import "./App.css";
 import Main from "./components/Main";
+import { FC, ReactElement } from "react";
+import React from "react";
 
-function App() {
+const App: FC = (): ReactElement => {
   return (
     <div
       className="App mx-auto"
@@ -10,6 +12,6 @@ function App() {
       <Main />
     </div>
   );
-}
+};
 
 export default App;

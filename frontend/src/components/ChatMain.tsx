@@ -1,13 +1,29 @@
 import { useState, useRef, useEffect, memo, useReducer, useContext } from "react";
-import { historyReducer } from "../reducers/historyReducer";
+import { HistoryItem, historyReducer } from "../reducers/historyReducer";
 import SendMsg from "./SendMsg";
 import ChatHistory from "./ChatHistory";
 import { LanguageContext } from "../contexts/LanguageContext";
+import React from "react";
+import { Character } from "../interfaces/interfaces";
 
-const ChatMain = ({ currCharacter, setIsLogin, setIsDrawerOpen, isLogin, setIsLoginModalOpen }) => {
-  const [history, dispatch] = useReducer(historyReducer, []);
-  const audioRef = useRef(new Audio());
-  const [isRecording, setIsRecording] = useState(false);
+interface ChatMainProps {
+  currCharacter: Character;
+  setIsLogin: (isLogin: boolean) => void;
+  setIsDrawerOpen: (isOpen: boolean) => void;
+  isLogin: boolean;
+  setIsLoginModalOpen: (isOpen: boolean) => void;
+}
+
+const ChatMain: React.FC<ChatMainProps> = ({ 
+  currCharacter, 
+  setIsLogin, 
+  setIsDrawerOpen, 
+  isLogin, 
+  setIsLoginModalOpen 
+}) => {
+  const [history, dispatch] = useReducer(historyReducer, [] as HistoryItem[]);
+  const audioRef = useRef<HTMLAudioElement>(new Audio());
+  const [isRecording, setIsRecording] = useState<boolean>(false);
   const { t } = useContext(LanguageContext);
 
   useEffect(() => {

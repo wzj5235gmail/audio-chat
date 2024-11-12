@@ -3,14 +3,17 @@ import ChatMain from "./ChatMain";
 import ChatListDrawer from "./ChatListDrawer";
 import { LanguageContext } from "../contexts/LanguageContext";
 import LoginModal from "./LoginModal";
+import React from "react";
+import { Character } from "../interfaces/interfaces";
 
 const Main = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [isChatting, setIsChatting] = useState(false);
-  const [currCharacter, setCurrCharacter] = useState({});
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isLogin, setIsLogin] = useState<boolean>(true);
+  const [isChatting, setIsChatting] = useState<boolean>(false);
+  const [currCharacter, setCurrCharacter] = useState<Character>({} as Character);
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(true);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const { t } = useContext(LanguageContext);
+
   // if not token or token expired, change login state
   useEffect(() => {
     const token = localStorage.getItem("token");

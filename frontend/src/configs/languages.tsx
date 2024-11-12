@@ -1,4 +1,10 @@
-export const translations = {
+interface Translations {
+  [key: string]: {
+    [key: string]: string;
+  };
+}
+
+export const translations: Translations = {
   en: {
     login: "Login",
     register: "Register",

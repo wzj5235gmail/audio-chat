@@ -1,17 +1,39 @@
-import { useState, memo, useContext } from "react";
+import { useState, memo, useContext, FormEvent, ChangeEvent } from "react";
 import { LanguageContext } from "../contexts/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
+import React from "react";
 
-const Login = ({ setIsLogin, onClose }) => {
-  const [loginForm, setLoginForm] = useState({ username: "", password: "" });
-  const [registerForm, setRegisterForm] = useState({
+interface LoginProps {
+  setIsLogin: (isLogin: boolean) => void;
+  onClose: () => void;
+}
+
+interface FormState {
+  username: string;
+  password: string;
+}
+
+interface LoginResponse {
+  access_token?: string;
+  expires_at?: string;
+  user_id?: string;
+  username?: string;
+}
+
+interface RegisterResponse {
+  username?: string;
+}
+
+const Login = ({ setIsLogin, onClose }: LoginProps) => {
+  const [loginForm, setLoginForm] = useState<FormState>({ username: "", password: "" });
+  const [registerForm, setRegisterForm] = useState<FormState>({
     username: "",
     password: "",
   });
-  const [showRegister, setShowRegister] = useState(false);
+  const [showRegister, setShowRegister] = useState<boolean>(false);
   const { t } = useContext(LanguageContext);
 
-  function handleLogin(e) {
+  function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     fetch(`/api/token`, {
       method: "POST",
@@ -21,12 +43,12 @@ const Login = ({ setIsLogin, onClose }) => {
       body: `username=${loginForm.username}&password=${loginForm.password}`,
     })
       .then((res) => res.json())
-      .then((res) => {
+      .then((res: LoginResponse) => {
         if (res.access_token) {
           localStorage.setItem("token", res.access_token);
-          localStorage.setItem("token_expire_at", res.expires_at);
-          localStorage.setItem("user_id", res.user_id);
-          localStorage.setItem("username", res.username);
+          localStorage.setItem("token_expire_at", res.expires_at || "");
+          localStorage.setItem("user_id", res.user_id || "");
+          localStorage.setItem("username", res.username || "");
           setIsLogin(true);
           setLoginForm({ username: "", password: "" });
           onClose();
@@ -40,12 +62,12 @@ const Login = ({ setIsLogin, onClose }) => {
       });
   }
 
-  function handleTestUserLogin(e) {
+  function handleTestUserLogin(e: FormEvent<HTMLButtonElement>) {
     e.preventDefault();
     setLoginForm({ username: "abc@gmail.com", password: "123456" });
   }
 
-  function handleRegister(e) {
+  function handleRegister(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     fetch(`/api/users`, {
       method: "POST",
@@ -58,7 +80,7 @@ const Login = ({ setIsLogin, onClose }) => {
       }),
     })
       .then((res) => res.json())
-      .then((res) => {
+      .then((res: RegisterResponse) => {
         if (res.username) {
           alert(`${t("registerSuccess")}${res.username}`);
           setRegisterForm({ username: "", password: "" });
@@ -94,7 +116,7 @@ const Login = ({ setIsLogin, onClose }) => {
                 type="text"
                 id="username"
                 value={loginForm.username}
-                onChange={(e) =>
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setLoginForm((prev) => {
                     return { ...prev, username: e.target.value };
                   })
@@ -113,7 +135,7 @@ const Login = ({ setIsLogin, onClose }) => {
                 type="password"
                 id="password"
                 value={loginForm.password}
-                onChange={(e) =>
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setLoginForm((prev) => {
                     return { ...prev, password: e.target.value };
                   })
@@ -163,7 +185,7 @@ const Login = ({ setIsLogin, onClose }) => {
                 type="text"
                 id="username"
                 value={registerForm.username}
-                onChange={(e) =>
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setRegisterForm((prev) => {
                     return { ...prev, username: e.target.value };
                   })
@@ -182,7 +204,7 @@ const Login = ({ setIsLogin, onClose }) => {
                 type="password"
                 id="password"
                 value={registerForm.password}
-                onChange={(e) =>
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setRegisterForm((prev) => {
                     return { ...prev, password: e.target.value };
                   })

@@ -1,11 +1,31 @@
-import { useState, memo, useContext } from "react";
+import React, { useState, memo, useContext, ChangeEvent, KeyboardEvent, Dispatch } from "react";
 import RecordButton from "./RecordButton";
 import { LanguageContext } from "../contexts/LanguageContext";
+import { Character } from "../interfaces/interfaces";
+import { HistoryAction } from "../reducers/historyReducer";
 
+interface HistoryItem {
+  time: number;
+  role: string;
+  message: string;
+  isAudio?: boolean;
+  translation?: string;
+  loading?: boolean;
+  audioUrl?: string;
+}
 
-const SendMsg = ({
+interface SendMsgProps {
+  audioRef: React.RefObject<HTMLAudioElement>;
+  setIsRecording: (isRecording: boolean) => void;
+  dispatch: Dispatch<HistoryAction>;
+  history: HistoryItem[];
+  currCharacter: Character;
+  isLogin: boolean;
+  setIsLoginModalOpen: (isOpen: boolean) => void;
+}
+
+const SendMsg: React.FC<SendMsgProps> = ({
   audioRef,
-  setHistory,
   setIsRecording,
   dispatch,
   history,
@@ -13,12 +33,12 @@ const SendMsg = ({
   isLogin,
   setIsLoginModalOpen,
 }) => {
-  const [message, setMessage] = useState("");
-  const [sendVoice, setSendVoice] = useState(false);
+  const [message, setMessage] = useState<string>("");
+  const [sendVoice, setSendVoice] = useState<boolean>(false);
   const { t } = useContext(LanguageContext);
   const { language } = useContext(LanguageContext);
 
-  const sendMessage = async (voiceMessage) => {
+  const sendMessage = async (voiceMessage?: string) => {
     if (!isLogin) {
       setIsLoginModalOpen(true);
       return;
@@ -88,7 +108,6 @@ const SendMsg = ({
         const data = await chatResponse.json();
         result = data.message;
         const translation = data.translation;
-        // console.log("translation:", data.translation);
         dispatch({
           type: "ADD_HISTORY",
           payload: {
@@ -104,7 +123,6 @@ const SendMsg = ({
       const resultToAudio = result.replace(/[\r|\n|\\s]+/g, "");
       const audioResponse = await fetch(
         `/voice_generate`,
-        // `http://localhost:9880/api/generate_audio`,
         {
           method: "POST",
           headers: {
@@ -126,7 +144,6 @@ const SendMsg = ({
       if (audioResponse.ok) {
         const blob = await audioResponse.blob();
         const url = window.URL.createObjectURL(blob);
-        // 设置audioUrl
         dispatch({
           type: "CHANGE_LAST_HISTORY",
           payload: {
@@ -134,7 +151,6 @@ const SendMsg = ({
             value: url,
           },
         });
-        // 取消loading状态
         dispatch({
           type: "CHANGE_LAST_HISTORY",
           payload: {
@@ -142,9 +158,10 @@ const SendMsg = ({
             value: false,
           },
         });
-        // 播放audio
-        audioRef.current.src = url;
-        audioRef.current.play();
+        if (audioRef.current) {
+          audioRef.current.src = url;
+          audioRef.current.play();
+        }
       } else {
         alert(t("failedToGenerateAudio"));
       }
@@ -164,7 +181,7 @@ const SendMsg = ({
               width={40}
             />
           </button>
-          <RecordButton {...{ setHistory, sendMessage, setIsRecording }} />
+          <RecordButton {...{ dispatch, sendMessage, setIsRecording }} />
         </div>
       ) : (
         <div className="send-text flex w-full space-between gap-4">
@@ -181,19 +198,18 @@ const SendMsg = ({
             type="text"
             className=" p-2 border border-gray rounded-lg flex-grow"
             id="message"
-            rows="1"
             placeholder={t("enterMessage")}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => {
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)}
+            onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
               if (e.key === "Enter") {
                 sendMessage();
               }
             }}
-          ></input>
+          />
           <button
             id="send"
-            onClick={sendMessage}
+            onClick={() => sendMessage()}
             className="px-4 py-2 rounded-lg border-2 border-red-400 text-red-400"
           >
             {t("send")}

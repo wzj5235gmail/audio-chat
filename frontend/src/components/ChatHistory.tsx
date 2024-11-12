@@ -1,8 +1,18 @@
 import React, { useRef, useEffect, memo } from "react";
 import ChatMessage from "./ChatMessage";
+import { Character } from "../interfaces/interfaces";
+import { Dispatch } from 'react';
+import { HistoryAction, HistoryItem } from '../reducers/historyReducer';
 
-const ChatHistory = ({ history, dispatch, currCharacter }) => {
-  const chatHistoryRef = useRef(null);
+
+interface ChatHistoryProps {
+  history: HistoryItem[];
+  dispatch: Dispatch<HistoryAction>;
+  currCharacter: Character;
+}
+
+const ChatHistory: React.FC<ChatHistoryProps> = ({ history, dispatch, currCharacter }) => {
+  const chatHistoryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
@@ -12,7 +22,7 @@ const ChatHistory = ({ history, dispatch, currCharacter }) => {
     )
       .then((res) => res.json())
       .then((data) => {
-        const historyFromDB = data.map((item) => ({
+        const historyFromDB = data.map((item: any) => ({
           time: item.created_at,
           message: item.message,
           role: item.role,

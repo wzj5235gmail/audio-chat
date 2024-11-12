@@ -1,7 +1,19 @@
 import { Drawer } from "flowbite-react";
 import ChatList from "./ChatList";
 import { useMediaQuery } from "react-responsive";
+import React from "react";
+import { Character } from "../interfaces/interfaces";
 
+interface ChatListDrawerProps {
+  setCurrCharacter: (character: Character) => void;
+  setIsChatting: (isChatting: boolean) => void;
+  isDrawerOpen: boolean;
+  setIsDrawerOpen: (isOpen: boolean) => void;
+  msg?: string;
+  setMsg?: (msg: string) => void;
+  isLogin: boolean;
+  setIsLoginModalOpen: (isOpen: boolean) => void;
+}
 
 export function ChatListDrawer({
   setCurrCharacter,
@@ -12,8 +24,8 @@ export function ChatListDrawer({
   setMsg,
   isLogin,
   setIsLoginModalOpen,
-}) {
-  const handleClose = () => setIsDrawerOpen(false);
+}: ChatListDrawerProps) {
+  const handleClose = (): void => setIsDrawerOpen(false);
   const isLargeScreen = useMediaQuery({ query: "(min-width: 1024px)" });
 
   return !isLargeScreen ? (

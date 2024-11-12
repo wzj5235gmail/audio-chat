@@ -4,18 +4,28 @@ import { FiLogOut } from "react-icons/fi";
 import { useState, useEffect, useContext } from "react";
 import { LanguageContext } from "../contexts/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
+import React from "react";
+import { Character } from "../interfaces/interfaces";
 
-const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen, isLogin, setIsLoginModalOpen }) => {
+interface ChatListProps {
+  setCurrCharacter: (character: Character) => void;
+  setIsChatting: (isChatting: boolean) => void;
+  setIsDrawerOpen: (isOpen: boolean) => void;
+  isLogin: boolean;
+  setIsLoginModalOpen: (isOpen: boolean) => void;
+}
+
+const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen, isLogin, setIsLoginModalOpen }) => {
   const { t } = useContext(LanguageContext);
-  const [characters, setCharacters] = useState([]);
+  const [characters, setCharacters] = useState<Character[]>([]);
 
   useEffect(() => {
     fetch(`/api/characters`)
       .then((response) => response.json())
-      .then((data) => setCharacters(data));
+      .then((data: Character[]) => setCharacters(data));
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     localStorage.removeItem("token");
     localStorage.removeItem("token_expire_at");
     localStorage.removeItem("user_id");
@@ -33,7 +43,7 @@ const ChatList = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen, isLogin, s
       <div className="flex-grow overflow-y-auto h-full">
         {characters.map((character) => (
           <ChatListItem
-            key={characters.id}
+            key={character.id}
             character={character}
             setCurrCharacter={setCurrCharacter}
             setIsChatting={setIsChatting}

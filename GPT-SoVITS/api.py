@@ -717,15 +717,17 @@ def get_tts_wav(ref_wav_path, prompt_text, prompt_language, text, text_language,
     # save_audio_to_file(audio_bytes, output_file_path)
     # print(f"Audio saved to {output_file_path}")
     # yield audio_bytes.getvalue()
-        audio_bytes = pack_audio(audio_bytes,(np.concatenate(audio_opt, 0) * 32768).astype(np.int16),hps.data.sampling_rate)
+        # audio_bytes = pack_audio(audio_bytes,(np.concatenate(audio_opt, 0) * 32768).astype(np.int16),hps.data.sampling_rate)
     # logger.info("%.3f\t%.3f\t%.3f\t%.3f" % (t1 - t0, t2 - t1, t3 - t2, t4 - t3))
-        if stream_mode == "normal":
-            audio_bytes, audio_chunk = read_clean_buffer(audio_bytes)
-            yield audio_chunk
+        # if stream_mode == "normal":
+        #     audio_bytes, audio_chunk = read_clean_buffer(audio_bytes)
+        #     yield audio_chunk
     
     if not stream_mode == "normal": 
         if media_type == "wav":
             audio_bytes = pack_wav(audio_bytes,hps.data.sampling_rate)
+        elif media_type == "aac":
+            audio_bytes = pack_aac(audio_bytes,(np.concatenate(audio_opt, 0) * 32768).astype(np.int16),hps.data.sampling_rate)
         yield audio_bytes.getvalue()
 
 def handle_control(command):
@@ -879,6 +881,8 @@ if args.stream_mode.lower() in ["normal","n"]:
     logger.info("流式返回已开启")
 else:
     stream_mode = "close"
+
+stream_mode = "close"
 
 # 音频编码格式
 if args.media_type.lower() in ["aac","ogg"]:

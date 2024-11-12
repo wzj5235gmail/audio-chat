@@ -1,7 +1,8 @@
 import { useContext } from 'react';
 import { LanguageContext } from '../contexts/LanguageContext';
+import React from "react";
 
-const LanguageSwitcher = () => {
+const LanguageSwitcher: React.FC = () => {
   const { language, setLanguage } = useContext(LanguageContext);
 
   return (
@@ -15,4 +16,3 @@ const LanguageSwitcher = () => {
 };
 
 export default LanguageSwitcher;
-

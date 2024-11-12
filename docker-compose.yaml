@@ -23,8 +23,8 @@ services:
       - backend/.env
 
   voice-generation:
-    # image: wzj5235/voice-generation:latest
-    image: wzj5235/voice-generation:test
+    image: wzj5235/voice-generation:latest
+    # image: wzj5235/voice-generation:test
     ports:
       - "9880:9880"
     deploy:
