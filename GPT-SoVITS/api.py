@@ -120,6 +120,7 @@ RESP: 无
 import argparse
 import os,re
 import sys
+import time
 
 now_dir = os.getcwd()
 sys.path.append(now_dir)
@@ -480,6 +481,116 @@ def save_audio_to_file(audio_bytes, file_path):
     with open(file_path, 'wb') as f:
         f.write(audio_bytes.getvalue())
 
+def get_text_length(text):
+    """计算文本的有效长度，考虑中英文字符"""
+    length = 0
+    for char in text:
+        if ord(char) <= 127:  # ASCII字符
+            length += 0.5
+        else:  # 中文等宽字符
+            length += 1
+    return length
+
+def smart_split(text, max_length=50):
+    """智能分割文本，保持句子完整性"""
+    # 定义句子结束符
+    end_marks = {"。", "！", "？", ".", "!", "?", "\n"}
+    # 定义分句标点
+    separators = {"，", "；", ",", ";"}
+    
+    result = []
+    current = ""
+    
+    sentences = []
+    temp = ""
+    
+    # 首先按句子切分
+    for char in text:
+        temp += char
+        if char in end_marks:
+            sentences.append(temp)
+            temp = ""
+    if temp:
+        sentences.append(temp)
+    
+    # 然后根据长度合并或进一步分割
+    for sentence in sentences:
+        if get_text_length(current + sentence) <= max_length:
+            current += sentence
+        else:
+            # 如果当前句子过长，尝试在分句标点处切分
+            if get_text_length(sentence) > max_length and any(sep in sentence for sep in separators):
+                parts = []
+                temp = ""
+                for char in sentence:
+                    temp += char
+                    if char in separators and get_text_length(temp) <= max_length:
+                        parts.append(temp)
+                        temp = ""
+                if temp:
+                    parts.append(temp)
+                
+                # 添加第一部分到当前段
+                if current:
+                    current += parts[0]
+                    result.append(current)
+                    current = ""
+                    parts = parts[1:]
+                
+                # 处理剩余部分
+                for part in parts:
+                    if get_text_length(part) <= max_length:
+                        if current:
+                            current += part
+                        else:
+                            current = part
+                    else:
+                        if current:
+                            result.append(current)
+                        result.append(part)
+                        current = ""
+            else:
+                if current:
+                    result.append(current)
+                current = sentence
+    
+    if current:
+        result.append(current)
+    
+    return result
+
+def merge_short_texts(texts, min_length=10, max_length=50):
+    """智能合并短文本，保持语义完整性"""
+    if len(texts) < 2:
+        return texts
+    
+    result = []
+    current = texts[0]
+    
+    for text in texts[1:]:
+        combined_length = get_text_length(current + text)
+        
+        # 如果合并后长度合适，或者当前文本过短
+        if combined_length <= max_length or get_text_length(current) < min_length:
+            current += text
+        else:
+            result.append(current)
+            current = text
+    
+    if current:
+        # 如果最后一段过短，尝试合并到前一段
+        if result and get_text_length(current) < min_length:
+            last = result.pop()
+            if get_text_length(last + current) <= max_length * 1.2:  # 允许稍微超过最大长度
+                result.append(last + current)
+            else:
+                result.append(last)
+                result.append(current)
+        else:
+            result.append(current)
+    
+    return result
+
 def get_tts_wav(ref_wav_path, prompt_text, prompt_language, text, text_language, gpt_path, sovits_path, top_k=5, top_p=1, temperature=1, ref_free = False):
     change_gpt_weights(gpt_path)
     change_sovits_weights(sovits_path)
@@ -519,11 +630,21 @@ def get_tts_wav(ref_wav_path, prompt_text, prompt_language, text, text_language,
         prompt_semantic = codes[0, 0]
     t1 = ttime()
 
-    text = cut2(text)
-    while "\n\n" in text:
-        text = text.replace("\n\n", "\n")
-    texts = text.split("\n")
-    texts = merge_short_text_in_array(texts, 5)
+    # 使用改进的文本处理
+    text = text.strip()
+    if not text:
+        return
+        
+    # 智能分割文本
+    texts = smart_split(text)
+    
+    # 合并过短的片段
+    texts = merge_short_texts(texts)
+    
+    # 添加日志
+    logger.debug(f"Original text: {text}")
+    logger.debug(f"Processed texts: {texts}")
+    
     audio_opt = []
     if not ref_free:
         phones1,bert1,norm_text1=get_phones_and_bert(prompt_text, prompt_language)
@@ -587,21 +708,25 @@ def get_tts_wav(ref_wav_path, prompt_text, prompt_language, text, text_language,
         # yield hps.data.sampling_rate, (np.concatenate(audio_opt, 0) * 32768).astype(
         #     np.int16
         # )
-        audio_bytes = pack_audio(
-            audio_bytes,
-            (np.concatenate(audio_opt, 0) * 32768).astype(np.int16),
-            hps.data.sampling_rate,
-        )
-        # audio_bytes = pack_audio(audio_bytes, (np.concatenate(audio_opt, 0) * 32768).astype(np.int16), hps.data.sampling_rate)
+    # audio_bytes = pack_audio(
+    #     audio_bytes,
+    #     (np.concatenate(audio_opt, 0) * 32768).astype(np.int16),
+    #     hps.data.sampling_rate,
+    # )
+    # output_file_path = f"audio_output/audio_{int(time.time())}.wav"
+    # save_audio_to_file(audio_bytes, output_file_path)
+    # print(f"Audio saved to {output_file_path}")
+    # yield audio_bytes.getvalue()
+        audio_bytes = pack_audio(audio_bytes,(np.concatenate(audio_opt, 0) * 32768).astype(np.int16),hps.data.sampling_rate)
+    # logger.info("%.3f\t%.3f\t%.3f\t%.3f" % (t1 - t0, t2 - t1, t3 - t2, t4 - t3))
+        if stream_mode == "normal":
+            audio_bytes, audio_chunk = read_clean_buffer(audio_bytes)
+            yield audio_chunk
     
-    # if media_type == "wav":
-    #     audio_bytes = pack_wav(audio_bytes, hps.data.sampling_rate)
-    import time
-    output_file_path = f"audio_output/audio_{int(time.time())}.wav"
-    save_audio_to_file(audio_bytes, output_file_path)
-    print(f"Audio saved to {output_file_path}")
-    yield audio_bytes.getvalue()
-
+    if not stream_mode == "normal": 
+        if media_type == "wav":
+            audio_bytes = pack_wav(audio_bytes,hps.data.sampling_rate)
+        yield audio_bytes.getvalue()
 
 def handle_control(command):
     if command == "restart":
@@ -763,6 +888,8 @@ elif stream_mode == "close":
 else:
     media_type = "ogg"
 logger.info(f"编码格式: {media_type}")
+
+media_type = "aac"
 
 # 初始化模型
 cnhubert.cnhubert_base_path = cnhubert_base_path

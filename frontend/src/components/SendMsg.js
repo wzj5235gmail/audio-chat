@@ -1,11 +1,5 @@
 import { useState, memo, useContext } from "react";
 import RecordButton from "./RecordButton";
-import {
-  gptModelPaths,
-  referPaths,
-  referTexts,
-  sovitsModelPaths,
-} from "../configs/configs";
 import { LanguageContext } from "../contexts/LanguageContext";
 
 
@@ -121,10 +115,10 @@ const SendMsg = ({
           body: JSON.stringify({
             text: resultToAudio,
             text_language: "日文",
-            gpt_path: gptModelPaths[id],
-            sovits_path: sovitsModelPaths[id],
-            refer_wav_path: referPaths[id],
-            prompt_text: referTexts[id],
+            gpt_path: currCharacter.gpt_model_path,
+            sovits_path: currCharacter.sovits_model_path,
+            refer_wav_path: currCharacter.refer_path,
+            prompt_text: currCharacter.refer_text,
             prompt_language: "日文",
           }),
         }

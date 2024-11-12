@@ -24,7 +24,7 @@ database.Base.metadata.create_all(bind=database.engine)
 crud.create_character_if_not_exists(db=next(get_db()), name="加藤惠", avatar_uri="megumi-avatar.jpg", gpt_model_path="GPT_weights/megumi20240607-e15.ckpt", sovits_model_path="SoVITS_weights/megumi20240607_e8_s200.pth", refer_path="refer/megumi/megumi-1.wav", refer_text="主人公相手だって考えればいいのか")
 crud.create_character_if_not_exists(db=next(get_db()), name="泽村英梨梨", avatar_uri="eriri-avatar.jpg", gpt_model_path="GPT_weights/eriri-e15.ckpt", sovits_model_path="SoVITS_weights/eriri_e8_s248.pth", refer_path="refer/eriri/eriri-2.wav", refer_text="そんなわけでさ 今ラフデザインやってるんだけど")
 crud.create_character_if_not_exists(db=next(get_db()), name="霞之丘诗羽", avatar_uri="utaha-avatar.jpg", gpt_model_path="GPT_weights/utaha-e15.ckpt", sovits_model_path="SoVITS_weights/utaha_e8_s256.pth", refer_path="refer/utaha/utaha-2.wav", refer_text="はいそれじゃあ次のシーン 最初はヒロインの方から抱きついてくる")
-
+crud.create_character_if_not_exists(db=next(get_db()), name="周防有希", avatar_uri="yuki-avatar.jpg", gpt_model_path="GPT_weights/Suou_Yuki-e15.ckpt", sovits_model_path="SoVITS_weights/Suou_Yuki_e12_s132.pth", refer_path="refer/yuki/SPEAKER_06_segment_186.wav", refer_text="その際政近君に今日はいつもと違う服装がしたいとお願いしてこのシャツをお借りしたんです")
 limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI()

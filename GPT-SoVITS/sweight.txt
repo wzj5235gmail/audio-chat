@@ -1,1 +1,1 @@
-SoVITS_weights/eriri_e8_s248.pth
+SoVITS_weights/Suou_Yuki_e12_s132.pth

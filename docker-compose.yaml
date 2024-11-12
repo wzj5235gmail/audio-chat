@@ -1,8 +1,6 @@
-version: '2'
-
 services:
   # frontend:
-  #   image: wzj5235/audio-chat-frontend:latest
+  #   image: frontend:test
   #   ports:
   #     - "3000:3000"
   #   depends_on:
@@ -13,7 +11,7 @@ services:
 
   backend:
     # image: wzj5235/audio-chat-backend:latest
-    image: backend:test
+    image: wzj5235/audio-chat-backend:test
     ports:
       - "8000:8000"
     depends_on:
@@ -25,7 +23,8 @@ services:
       - backend/.env
 
   voice-generation:
-    image: wzj5235/voice-generation:latest
+    # image: wzj5235/voice-generation:latest
+    image: wzj5235/voice-generation:test
     ports:
       - "9880:9880"
     deploy:

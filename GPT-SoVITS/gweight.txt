@@ -1,1 +1,1 @@
-GPT_weights/eriri-e15.ckpt
+GPT_weights/Suou_Yuki-e15.ckpt
