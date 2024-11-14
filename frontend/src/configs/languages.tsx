@@ -32,6 +32,7 @@ export const translations: Translations = {
     泽村英梨梨: "Sawamura Spencer Eriri",
     霞之丘诗羽: "Kasumigaoka Utaha",
     周防有希: "Suou Yuki",
+    艾米利亚: "Emiria",
     failedToGenerateAudio: "Failed to generate audio",
   },
   zh: {
@@ -61,6 +62,7 @@ export const translations: Translations = {
     泽村英梨梨: "泽村·斯宾塞·英梨梨",
     霞之丘诗羽: "霞之丘诗羽",
     周防有希: "周防有希",
+    艾米利亚: "艾蜜莉亚",
     failedToGenerateAudio: "生成音频失败",
   }
 };

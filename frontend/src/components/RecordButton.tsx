@@ -1,10 +1,12 @@
-import { useEffect, useRef, memo, Dispatch } from "react";
+import { useEffect, useRef, memo, Dispatch, useContext } from "react";
 import React from "react";
 import { HistoryAction } from "../reducers/historyReducer";
+import { stt } from "../api/api";
+import { LanguageContext } from "../contexts/LanguageContext";
 
 interface RecordButtonProps {
   dispatch: Dispatch<HistoryAction>;
-  sendMessage: (voiceMessage?: string) => void;
+  sendMessage: (message: string) => void;
   setIsRecording: (isRecording: boolean) => void;
 }
 
@@ -21,6 +23,7 @@ const RecordButton: React.FC<RecordButtonProps> = ({
   const readyRef = useRef<boolean>(false);
   const isCancelledRef = useRef<boolean>(false);
   const initialTouchYRef = useRef<number | null>(null);
+  const { t } = useContext(LanguageContext);
 
   const handleStopRecord = async () => {
     if (readyRef.current && mediaRecorderRef.current) {
@@ -45,8 +48,6 @@ const RecordButton: React.FC<RecordButtonProps> = ({
     const ua = navigator.userAgent.toLowerCase();
     if (/iphone|ipad|ipod|mac/.test(ua) && !/chrome/.test(ua)) {
       return "audio/mp4";
-    } else if (/chrome/.test(ua)) {
-      return "audio/webm";
     } else {
       return "audio/webm";
     }
@@ -54,8 +55,6 @@ const RecordButton: React.FC<RecordButtonProps> = ({
 
   useEffect(() => {
     const setupMediaRecorder = async () => {
-      let voiceMessage = "";
-      const mimeType = getMimeType();
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         alert(
           "Your browser does not support audio recording. Please use a modern browser."
@@ -63,6 +62,7 @@ const RecordButton: React.FC<RecordButtonProps> = ({
         return;
       }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = getMimeType();
       mediaRecorderRef.current = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current.ondataavailable = (event: BlobEvent) => {
         if (event.data.size > 0) {
@@ -71,12 +71,10 @@ const RecordButton: React.FC<RecordButtonProps> = ({
       };
       mediaRecorderRef.current.onstop = async () => {
         if (!recordBtnRef.current) return;
-        
         recordBtnRef.current.classList.remove("scale-90");
         recordBtnRef.current.classList.remove("bg-red-400");
         recordBtnRef.current.classList.remove("text-white");
         recordBtnRef.current.classList.add("text-red-400");
-  
         endTime.current = Date.now();
         const recordingDuration = startTime.current ? (endTime.current - startTime.current) / 1000 : 0;
         if (recordingDuration < 0.5) {
@@ -84,12 +82,10 @@ const RecordButton: React.FC<RecordButtonProps> = ({
           alert("录音失败：录音长度小于0.5秒");
           return;
         }
-  
         if (isCancelledRef.current) {
           audioChunksRef.current = [];
           return;
         }
-
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         audioChunksRef.current = [];
         if (audioBlob.size === 0) {
@@ -97,57 +93,41 @@ const RecordButton: React.FC<RecordButtonProps> = ({
           return;
         }
         const audioUrl = URL.createObjectURL(audioBlob);
-
-        // setHistory((prevHistory) => [
-        //   ...prevHistory,
-        //   {
-        //     time: Date.now(),
-        //     role: "user",
-        //     message: "...",
-        //     audioUrl,
-        //     isAudio: true,
-        //   },
-        // ]);
-        dispatch({ type: "ADD_HISTORY", payload: {
-          time: Date.now(),
-          role: "user",
-          message: "...",
-          audioUrl,
-          isAudio: true,
-        } });
-
+        dispatch({
+          type: "ADD_HISTORY",
+          payload: {
+            time: Date.now(),
+            role: "user",
+            message: "...",
+            audioUrl,
+            isAudio: true,
+          },
+        });
         const formData = new FormData();
         formData.append(
           "audio",
           audioBlob,
           mimeType === "audio/webm" ? "recording.webm" : "recording.mp4"
         );
-
-        try {
-          const response = await fetch(`/api/stt`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: formData,
-          });
-          if (response.ok) {
-            const data = await response.json();
-            voiceMessage = data.transcription;
-            sendMessage(voiceMessage);
-          } else {
-            console.error("Failed to upload audio file");
-          }
-        } catch (error) {
-          console.error("Error while uploading audio file:", error);
+        const transcription = await stt(audioBlob);
+        if (!transcription) {
+          console.error("Failed to upload audio file");
+          return;
         }
+        dispatch({
+          type: "CHANGE_LAST_HISTORY",
+          payload: {
+            field: "message",
+            value: transcription,
+          },
+        });
+        sendMessage(transcription);
       };
     };
 
     async function setup() {
       await setupMediaRecorder();
       if (!recordBtnRef.current) return;
-      
       recordBtnRef.current.classList.remove("border-gray-200");
       recordBtnRef.current.classList.remove("text-gray-200");
       recordBtnRef.current.classList.add("border-red-400");
@@ -181,7 +161,7 @@ const RecordButton: React.FC<RecordButtonProps> = ({
       className="border-2 border-gray-200 text-gray-200 px-4 py-2 rounded-lg flex-grow transition no-select"
       ref={recordBtnRef}
     >
-      按住说话
+      {t("pressToTalk")}
     </button>
   );
 };

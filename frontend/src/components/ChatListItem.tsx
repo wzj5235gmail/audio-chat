@@ -71,7 +71,9 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
       className="flex gap-4 items-center border-b p-4 cursor-pointer hover:bg-gray-100"
       onClick={handleSelectCharacter}
     >
-      <img src={character.avatar_uri} alt={t(character.name)} className="w-16 h-16 rounded-lg" />
+      <div
+        className="w-16 h-16 rounded-lg bg-center bg-cover shrink-0"
+        style={{ backgroundImage: `url(${character.avatar_uri})` }}></div>
       <div className="w-full">
         <div className="flex justify-between w-full">
           <div className="text-xl">{t(character.name)}</div>

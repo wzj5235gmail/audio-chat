@@ -3,6 +3,7 @@ import RecordButton from "./RecordButton";
 import { LanguageContext } from "../contexts/LanguageContext";
 import { Character } from "../interfaces/interfaces";
 import { HistoryAction } from "../reducers/historyReducer";
+import { generateVoice, saveAudio, sendChatMessage } from "../api/api";
 
 interface HistoryItem {
   time: number;
@@ -38,135 +39,111 @@ const SendMsg: React.FC<SendMsgProps> = ({
   const { t } = useContext(LanguageContext);
   const { language } = useContext(LanguageContext);
 
-  const sendMessage = async (voiceMessage?: string) => {
+
+  const sendMessage = async (message: string) => {
     if (!isLogin) {
       setIsLoginModalOpen(true);
       return;
     }
-    if (sendVoice && typeof voiceMessage === "string") {
-      if (voiceMessage.trim() !== "") {
-        if (history.length > 0) {
-          dispatch({
-            type: "CHANGE_LAST_HISTORY",
-            payload: {
-              field: "message",
-              value: voiceMessage,
-            },
-          });
-        } else {
-          dispatch({
-            type: "ADD_HISTORY",
-            payload: {
-              time: Date.now(),
-              role: "user",
-              message: voiceMessage,
-              isAudio: true,
-            },
-          });
-        }
-      }
-    } else {
-      if (message.trim() !== "") {
-        dispatch({
-          type: "ADD_HISTORY",
-          payload: {
-            time: Date.now(),
-            role: "user",
-            message: message,
-            isAudio: false,
-          },
-        });
-        setMessage("");
-      }
-    }
-
-    const msgToSend = typeof voiceMessage === "string" ? voiceMessage : message;
-    if (msgToSend.trim() === "") {
+    if (message.trim() === "") {
       alert(t("emptyMessage"));
-      dispatch({
-        type: "DELETE_LAST_HISTORY",
-      });
-    } else {
-      const chatResponse = await fetch(
-        `/api/chat/${currCharacter.id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            content: typeof voiceMessage === "string" ? voiceMessage : message,
-            language: language,
-          }),
-        }
-      );
-
-      let result = "";
-
-      if (chatResponse.ok) {
-        const data = await chatResponse.json();
-        result = data.message;
-        const translation = data.translation;
-        dispatch({
-          type: "ADD_HISTORY",
-          payload: {
-            time: Date.now(),
-            role: "megumi",
-            message: result,
-            isAudio: true,
-            translation,
-            loading: true,
-          },
-        });
-      }
-      const resultToAudio = result.replace(/[\r|\n|\\s]+/g, "");
-      const audioResponse = await fetch(
-        `/voice_generate`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            text: resultToAudio,
-            text_language: "日文",
-            gpt_path: currCharacter.gpt_model_path,
-            sovits_path: currCharacter.sovits_model_path,
-            refer_wav_path: currCharacter.refer_path,
-            prompt_text: currCharacter.refer_text,
-            prompt_language: "日文",
-          }),
-        }
-      );
-
-      if (audioResponse.ok) {
-        const blob = await audioResponse.blob();
-        const url = window.URL.createObjectURL(blob);
-        dispatch({
-          type: "CHANGE_LAST_HISTORY",
-          payload: {
-            field: "audioUrl",
-            value: url,
-          },
-        });
-        dispatch({
-          type: "CHANGE_LAST_HISTORY",
-          payload: {
-            field: "loading",
-            value: false,
-          },
-        });
-        if (audioRef.current) {
-          audioRef.current.src = url;
-          audioRef.current.play();
-        }
-      } else {
-        alert(t("failedToGenerateAudio"));
-      }
+      return;
     }
-  };
+    // if (history.length > 0) {
+    //   dispatch({
+    //     type: "CHANGE_LAST_HISTORY",
+    //     payload: {
+    //       field: "message",
+    //       value: voiceMessage,
+    //     },
+    //   });
+    // } else {
+    //   dispatch({
+    //     type: "ADD_HISTORY",
+    //     payload: {
+    //       time: Date.now(),
+    //       role: "user",
+    //       message: voiceMessage,
+    //       isAudio: true,
+    //     },
+    //   });
+    // }
+    // dispatch({
+    //   type: "ADD_HISTORY",
+    //   payload: {
+    //     time: Date.now(),
+    //     role: "user",
+    //     message: message,
+    //     isAudio: false,
+    //   },
+    // });
+    setMessage("");
+
+    // const msgToSend = typeof voiceMessage === "string" ? voiceMessage : message;
+    // if (msgToSend.trim() === "") {
+    //   alert(t("emptyMessage"));
+    //   dispatch({
+    //     type: "DELETE_LAST_HISTORY",
+    //   });
+    // } else {
+    const chatResponse = await sendChatMessage(currCharacter.id, message, language);
+    if (!chatResponse) {
+      alert(t("failedToSendMessage"));
+      return;
+    }
+    const responseMsg = chatResponse.message;
+    const conversationId = chatResponse.id;
+    const translation = chatResponse.translation;
+    dispatch({
+      type: "ADD_HISTORY",
+      payload: {
+        time: Date.now(),
+        role: "character",
+        message: responseMsg,
+        isAudio: true,
+        translation,
+        loading: true,
+      },
+    });
+    const resultToAudio = responseMsg.replace(/[\r|\n|\\s]+/g, "");
+    const audioResponse = await generateVoice(
+      resultToAudio,
+      "日文",
+      currCharacter.gpt_model_path,
+      currCharacter.sovits_model_path,
+      currCharacter.refer_path,
+      currCharacter.refer_text,
+      "日文"
+    );
+    if (!audioResponse) {
+      alert(t("failedToGenerateAudio"));
+      return;
+    }
+    const audioUrlResponse = await saveAudio(audioResponse, conversationId);
+    if (!audioUrlResponse) {
+      alert(t("failedToGenerateAudio"));
+      return;
+    }
+    const audioUrl = audioUrlResponse.audio_url;
+    dispatch({
+      type: "CHANGE_LAST_HISTORY",
+      payload: {
+        field: "audioUrl",
+        value: audioUrl,
+      },
+    });
+    dispatch({
+      type: "CHANGE_LAST_HISTORY",
+      payload: {
+        field: "loading",
+        value: false,
+      },
+    });
+    if (audioRef.current) {
+      audioRef.current.src = audioUrl;
+      audioRef.current.play();
+    }
+  }
 
   return (
     <div className="send-msg my-4 mx-2 flex gap-4 items-center">
@@ -203,13 +180,13 @@ const SendMsg: React.FC<SendMsgProps> = ({
             onChange={(e: ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)}
             onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
               if (e.key === "Enter") {
-                sendMessage();
+                sendMessage(message);
               }
             }}
           />
           <button
             id="send"
-            onClick={() => sendMessage()}
+            onClick={() => sendMessage(message)}
             className="px-4 py-2 rounded-lg border-2 border-red-400 text-red-400"
           >
             {t("send")}
