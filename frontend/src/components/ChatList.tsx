@@ -6,6 +6,7 @@ import { LanguageContext } from "../contexts/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import React from "react";
 import { Character } from "../interfaces/interfaces";
+import { fetchCharacters } from "../api/api";
 
 interface ChatListProps {
   setCurrCharacter: (character: Character) => void;
@@ -19,10 +20,13 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
   const { t } = useContext(LanguageContext);
   const [characters, setCharacters] = useState<Character[]>([]);
 
+  const getCharacters = async () => {
+    const characters = await fetchCharacters();
+    setCharacters(characters);
+  };
+  
   useEffect(() => {
-    fetch(`/api/characters`)
-      .then((response) => response.json())
-      .then((data: Character[]) => setCharacters(data));
+    getCharacters();
   }, []);
 
   const handleLogout = (): void => {

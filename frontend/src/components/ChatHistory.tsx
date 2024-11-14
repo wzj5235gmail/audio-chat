@@ -3,7 +3,7 @@ import ChatMessage from "./ChatMessage";
 import { Character } from "../interfaces/interfaces";
 import { Dispatch } from 'react';
 import { HistoryAction, HistoryItem } from '../reducers/historyReducer';
-
+import { getConversations } from "../api/api";
 
 interface ChatHistoryProps {
   history: HistoryItem[];
@@ -13,27 +13,15 @@ interface ChatHistoryProps {
 
 const ChatHistory: React.FC<ChatHistoryProps> = ({ history, dispatch, currCharacter }) => {
   const chatHistoryRef = useRef<HTMLDivElement>(null);
+  const getHistory = async (userId: string) => {
+    const historyFromDB = await getConversations(parseInt(userId), currCharacter.id);
+    dispatch({ type: "INIT_HISTORY", payload: historyFromDB });
+  };
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
     if (!userId) return;
-    fetch(
-      `/api/conversations?user_id=${userId}&character_id=${currCharacter.id}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        const historyFromDB = data.map((item: any) => ({
-          time: item.created_at,
-          message: item.message,
-          role: item.role,
-          translation: item.translation,
-        }));
-        dispatch({ type: "INIT_HISTORY", payload: historyFromDB });
-      })
-      .catch((e) => {
-        alert("获取历史记录失败");
-        console.log(e);
-      });
+    getHistory(userId);
   }, [currCharacter.id, dispatch]);
 
   useEffect(() => {

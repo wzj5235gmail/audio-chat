@@ -2,6 +2,7 @@ import { useState, memo, useContext, FormEvent, ChangeEvent } from "react";
 import { LanguageContext } from "../contexts/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import React from "react";
+import { login, register } from "../api/api";
 
 interface LoginProps {
   setIsLogin: (isLogin: boolean) => void;
@@ -33,33 +34,20 @@ const Login = ({ setIsLogin, onClose }: LoginProps) => {
   const [showRegister, setShowRegister] = useState<boolean>(false);
   const { t } = useContext(LanguageContext);
 
-  function handleLogin(e: FormEvent<HTMLFormElement>) {
+  async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    fetch(`/api/token`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `username=${loginForm.username}&password=${loginForm.password}`,
-    })
-      .then((res) => res.json())
-      .then((res: LoginResponse) => {
-        if (res.access_token) {
-          localStorage.setItem("token", res.access_token);
-          localStorage.setItem("token_expire_at", res.expires_at || "");
-          localStorage.setItem("user_id", res.user_id || "");
-          localStorage.setItem("username", res.username || "");
-          setIsLogin(true);
-          setLoginForm({ username: "", password: "" });
-          onClose();
-        } else {
-          alert(t("loginFailed"));
-        }
-      })
-      .catch((e) => {
-        console.log(e);
-        alert(t("loginFailed"));
-      });
+    const data: LoginResponse = await login(loginForm.username, loginForm.password);
+    if (data.access_token) {
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("token_expire_at", data.expires_at || "");
+      localStorage.setItem("user_id", data.user_id || "");
+      localStorage.setItem("username", data.username || "");
+      setIsLogin(true);
+      setLoginForm({ username: "", password: "" });
+      onClose();
+    } else {
+      alert(t("loginFailed"));
+    }
   }
 
   function handleTestUserLogin(e: FormEvent<HTMLButtonElement>) {
@@ -67,32 +55,16 @@ const Login = ({ setIsLogin, onClose }: LoginProps) => {
     setLoginForm({ username: "abc@gmail.com", password: "123456" });
   }
 
-  function handleRegister(e: FormEvent<HTMLFormElement>) {
+  async function handleRegister(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    fetch(`/api/users`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: registerForm.username,
-        password: registerForm.password,
-      }),
-    })
-      .then((res) => res.json())
-      .then((res: RegisterResponse) => {
-        if (res.username) {
-          alert(`${t("registerSuccess")}${res.username}`);
-          setRegisterForm({ username: "", password: "" });
-          setShowRegister(false);
-        } else {
-          alert(t("registerFailed"));
-        }
-      })
-      .catch((e) => {
-        console.log(e);
-        alert(t("registerFailed"));
-      });
+    const res: RegisterResponse = await register(registerForm.username, registerForm.password);
+    if (res.username) {
+      alert(`${t("registerSuccess")}${res.username}`);
+      setRegisterForm({ username: "", password: "" });
+      setShowRegister(false);
+    } else {
+      alert(t("registerFailed"));
+    }
   }
 
   return (

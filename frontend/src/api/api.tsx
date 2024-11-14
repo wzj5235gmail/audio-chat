@@ -118,5 +118,50 @@ const stt = async (audio: Blob) => {
   }
 }
 
+const getConversations = async (userId: number, characterId: number, limit: number = 10) => {
+  const response = await fetch(
+    `/api/conversations?user_id=${userId}&character_id=${characterId}&limit=${limit}`
+  );
+  const data = await response.json();
+  const historyFromDB = data.map((item: any) => ({
+    time: item.created_at,
+    message: item.message,
+    role: item.role,
+    translation: item.translation,
+  }));
+  return historyFromDB;
+}
 
-export { sendChatMessage, generateVoice, saveAudio, stt };
+const fetchCharacters = async () => {
+  const response = await fetch(`/api/characters`);
+  const data = await response.json();
+  return data;
+}
+
+const login = async (username: string, password: string) => {
+  const response = await fetch(`/api/token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: `username=${username}&password=${password}`,
+  });
+  return response.json();
+}
+
+const register = async (username: string, password: string) => {
+  const response = await fetch(`/api/users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+    }),
+  })
+  return response.json();
+}
+
+
+export { sendChatMessage, generateVoice, saveAudio, stt, getConversations, fetchCharacters, login, register };
