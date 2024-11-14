@@ -32,29 +32,29 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
   const [date, setDate] = useState<string>("");
   const userId = localStorage.getItem("user_id");
   
-  const getLatestConversation = async (userId: string, characterId: number) => {
-    const data: ConversationResponse[] = await getConversations(parseInt(userId), characterId, 1);
-    if (data.length === 0) return;
-    // format date
-    const dateFromTs = new Date(Number(data[0].created_at));
-    const month = dateFromTs.getMonth() + 1;
-    const day = dateFromTs.getDate();
-    const hour = dateFromTs.getHours();
-    const minute = dateFromTs.getMinutes();
-    setDate(isToday(dateFromTs) ? `${hour}:${minute}` : `${month}/${day}`);
-    // format message
-    const message = data[0].message;
-    if (message.length > 15) {
-      setMsg(message.substring(0, 15) + "...");
-    } else {
-      setMsg(message);
-    }
-  };
-
+  
   useEffect(() => {
+    const getLatestConversation = async (userId: string, characterId: number) => {
+      const data: ConversationResponse[] = await getConversations(parseInt(userId), characterId, 1);
+      if (data.length === 0) return;
+      // format date
+      const dateFromTs = new Date(Number(data[0].created_at));
+      const month = dateFromTs.getMonth() + 1;
+      const day = dateFromTs.getDate();
+      const hour = dateFromTs.getHours();
+      const minute = dateFromTs.getMinutes();
+      setDate(isToday(dateFromTs) ? `${hour}:${minute}` : `${month}/${day}`);
+      // format message
+      const message = data[0].message;
+      if (message.length > 15) {
+        setMsg(message.substring(0, 15) + "...");
+      } else {
+        setMsg(message);
+      }
+    };
     if (!userId) return;
     getLatestConversation(userId, character.id);
-  }, [character.id, userId, getLatestConversation]);
+  }, [character.id, userId]);
 
   const handleSelectCharacter = (): void => {
     setCurrCharacter(character);

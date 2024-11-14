@@ -13,16 +13,16 @@ interface ChatHistoryProps {
 
 const ChatHistory: React.FC<ChatHistoryProps> = ({ history, dispatch, currCharacter }) => {
   const chatHistoryRef = useRef<HTMLDivElement>(null);
-  const getHistory = async (userId: string) => {
-    const historyFromDB = await getConversations(parseInt(userId), currCharacter.id);
-    dispatch({ type: "INIT_HISTORY", payload: historyFromDB });
-  };
-
+  
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
     if (!userId) return;
+    const getHistory = async (userId: string) => {
+      const historyFromDB = await getConversations(parseInt(userId), currCharacter.id);
+      dispatch({ type: "INIT_HISTORY", payload: historyFromDB });
+    };
     getHistory(userId);
-  }, [currCharacter.id, dispatch, getHistory]);
+  }, [currCharacter.id, dispatch]);
 
   useEffect(() => {
     if (chatHistoryRef.current) {

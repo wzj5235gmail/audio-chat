@@ -49,43 +49,7 @@ const SendMsg: React.FC<SendMsgProps> = ({
       alert(t("emptyMessage"));
       return;
     }
-    // if (history.length > 0) {
-    //   dispatch({
-    //     type: "CHANGE_LAST_HISTORY",
-    //     payload: {
-    //       field: "message",
-    //       value: voiceMessage,
-    //     },
-    //   });
-    // } else {
-    //   dispatch({
-    //     type: "ADD_HISTORY",
-    //     payload: {
-    //       time: Date.now(),
-    //       role: "user",
-    //       message: voiceMessage,
-    //       isAudio: true,
-    //     },
-    //   });
-    // }
-    // dispatch({
-    //   type: "ADD_HISTORY",
-    //   payload: {
-    //     time: Date.now(),
-    //     role: "user",
-    //     message: message,
-    //     isAudio: false,
-    //   },
-    // });
     setMessage("");
-
-    // const msgToSend = typeof voiceMessage === "string" ? voiceMessage : message;
-    // if (msgToSend.trim() === "") {
-    //   alert(t("emptyMessage"));
-    //   dispatch({
-    //     type: "DELETE_LAST_HISTORY",
-    //   });
-    // } else {
     const chatResponse = await sendChatMessage(currCharacter.id, message, language);
     if (!chatResponse) {
       alert(t("failedToSendMessage"));

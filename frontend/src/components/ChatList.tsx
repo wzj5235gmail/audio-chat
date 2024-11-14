@@ -20,12 +20,12 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
   const { t } = useContext(LanguageContext);
   const [characters, setCharacters] = useState<Character[]>([]);
 
-  const getCharacters = async () => {
-    const characters = await fetchCharacters();
-    setCharacters(characters);
-  };
   
   useEffect(() => {
+    const getCharacters = async () => {
+      const characters = await fetchCharacters();
+      setCharacters(characters);
+    };
     getCharacters();
   }, []);
 
