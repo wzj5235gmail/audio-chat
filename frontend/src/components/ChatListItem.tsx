@@ -33,7 +33,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
   const userId = localStorage.getItem("user_id");
   
   const getLatestConversation = async (userId: string, characterId: number) => {
-    const data = await getConversations(parseInt(userId), character.id, 1);
+    const data: ConversationResponse[] = await getConversations(parseInt(userId), characterId, 1);
     if (data.length === 0) return;
     // format date
     const dateFromTs = new Date(Number(data[0].created_at));
@@ -54,7 +54,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
   useEffect(() => {
     if (!userId) return;
     getLatestConversation(userId, character.id);
-  }, [character.id, userId]);
+  }, [character.id, userId, getLatestConversation]);
 
   const handleSelectCharacter = (): void => {
     setCurrCharacter(character);

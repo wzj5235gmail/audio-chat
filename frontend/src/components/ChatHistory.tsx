@@ -22,7 +22,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ history, dispatch, currCharac
     const userId = localStorage.getItem("user_id");
     if (!userId) return;
     getHistory(userId);
-  }, [currCharacter.id, dispatch]);
+  }, [currCharacter.id, dispatch, getHistory]);
 
   useEffect(() => {
     if (chatHistoryRef.current) {
