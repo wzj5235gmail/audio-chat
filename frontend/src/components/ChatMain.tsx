@@ -52,7 +52,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
         {...{ setIsRecording, audioRef, dispatch, history, currCharacter, isLogin, setIsLoginModalOpen }}
       />
       {isRecording && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 no-select">
+        <div className="recording-indicator fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 no-select">
           <span className="text-white text-lg">
             {t("recording")}
           </span>
