@@ -1,43 +1,82 @@
-import shutil
 import time
 import dotenv
 import os
 from fastapi.security import OAuth2PasswordRequestForm
-from langchain_core.messages import HumanMessage
-from langchain_community.chat_message_histories import RedisChatMessageHistory
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile, Response
-from typing import Annotated, AsyncIterator
+from typing import Annotated
 from sqlalchemy.orm import Session
 from . import configs, crud, database, security, schemas
-from .utils import get_current_user_from_token, get_db, chat_with_history, translate_chain_en, translate_chain_zh, client
+from .utils import get_current_user_from_token, get_db
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import asyncio
 from .redis import redis
+from .controllers import *
+from fastapi.responses import FileResponse
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.security import HTTPBearer
+from .security import SecurityHeadersMiddleware, XSSProtectionMiddleware, validate_user_input
+from prometheus_client import Counter, Histogram, generate_latest
+import logging
+from datetime import datetime
 
 dotenv.load_dotenv()
 
 database.Base.metadata.create_all(bind=database.engine)
 
-crud.create_character_if_not_exists(db=next(get_db()), name="加藤惠", avatar_uri="megumi-avatar.jpg", gpt_model_path="GPT_weights/megumi20240607-e15.ckpt", sovits_model_path="SoVITS_weights/megumi20240607_e8_s200.pth", refer_path="refer/megumi/megumi-1.wav", refer_text="主人公相手だって考えればいいのか")
-crud.create_character_if_not_exists(db=next(get_db()), name="泽村英梨梨", avatar_uri="eriri-avatar.jpg", gpt_model_path="GPT_weights/eriri-e15.ckpt", sovits_model_path="SoVITS_weights/eriri_e8_s248.pth", refer_path="refer/eriri/eriri-2.wav", refer_text="そんなわけでさ 今ラフデザインやってるんだけど")
-crud.create_character_if_not_exists(db=next(get_db()), name="霞之丘诗羽", avatar_uri="utaha-avatar.jpg", gpt_model_path="GPT_weights/utaha-e15.ckpt", sovits_model_path="SoVITS_weights/utaha_e8_s256.pth", refer_path="refer/utaha/utaha-2.wav", refer_text="はいそれじゃあ次のシーン 最初はヒロインの方から抱きついてくる")
-crud.create_character_if_not_exists(db=next(get_db()), name="周防有希", avatar_uri="yuki-avatar.jpg", gpt_model_path="GPT_weights/Suou_Yuki-e15.ckpt", sovits_model_path="SoVITS_weights/Suou_Yuki_e12_s132.pth", refer_path="refer/yuki/SPEAKER_06_segment_186.wav", refer_text="その際政近君に今日はいつもと違う服装がしたいとお願いしてこのシャツをお借りしたんです")
+for character in configs.db_init:
+    crud.create_character_if_not_exists(
+        db=next(get_db()),
+        name=character["name"], 
+        avatar_uri=character["avatar_uri"], 
+        gpt_model_path=character["gpt_model_path"], 
+        sovits_model_path=character["sovits_model_path"], 
+        refer_path=character["refer_path"], 
+        refer_text=character["refer_text"]
+    )
+
 limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# 定义允许的域名列表
+ALLOWED_ORIGINS = [
+    "http://localhost",
+    "http://localhost:3000",
+    "https://animechat.live",
+    "https://www.animechat.live"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS if os.getenv("ENV") == "production" else ["*"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
+if os.getenv("ENV") == "production":
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(XSSProtectionMiddleware)
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_ORIGINS)
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Prometheus metrics
+REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
+REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP request latency')
+USER_ACTIONS = Counter('user_actions_total', 'User actions counter', ['action_type'])
 
 @app.middleware("http")
 async def cache_conversations(request: Request, call_next):
@@ -46,7 +85,6 @@ async def cache_conversations(request: Request, call_next):
         character_id = request.query_params.get("character_id")
         skip = request.query_params.get("skip")
         limit = request.query_params.get("limit")
-
         # check if the conversations are cached
         cache_key = f"conversations_{user_id}_{character_id}_{skip}_{limit}"
         cached_data = await redis.get(cache_key)
@@ -55,17 +93,13 @@ async def cache_conversations(request: Request, call_next):
                 content=cached_data,
                 media_type="application/json"
             )
-
         # get the response
         response = await call_next(request)
-
         # read the response content and cache it
         response_body = [chunk async for chunk in response.body_iterator]
         response_content = b"".join(response_body)
-
         # cache the response content
         await redis.set(cache_key, response_content, ex=int(os.getenv("CACHE_EXPIRE_TIME_SECONDS")))
-
         # return the new response
         return Response(
             content=response_content,
@@ -73,150 +107,6 @@ async def cache_conversations(request: Request, call_next):
         )
 
     return await call_next(request)
-
-
-def chat_handler(
-    request: Request, 
-    character_id: int,
-    message: schemas.Message,
-    db: Session = Depends(get_db)
-):
-    # Get the user's info from the token
-    current_user = get_current_user_from_token(request)
-    # Get the user's conversation history
-    user_id = current_user['user_id']
-    character_name = configs.characters[character_id]
-    
-    # Use RedisChatMessageHistory with a combined session_id
-    session_id = f"{user_id}_{character_id}"
-    chat_history = RedisChatMessageHistory(
-        session_id=session_id,
-        url=os.environ.get("REDIS_URL", "redis://localhost:6379"),
-    )
-
-    # Check if the chat history is empty
-    if len(chat_history.messages) == 0:
-        # Get the user's conversation history from the database
-        conversations = crud.get_conversations(
-            db=db, 
-            user_id=user_id, 
-            character_id=character_id,
-            limit=configs.max_chat_history
-        )
-        # Add the user's conversation history to the RedisChatMessageHistory
-        conversations.reverse()
-        for con in conversations:
-            if con.role == "user":
-                chat_history.add_user_message(con.message)
-            elif con.role == "assistant":
-                chat_history.add_ai_message(con.message)
-
-    # If the chat history is longer than the maximum length, truncate it
-    if len(chat_history.messages) > configs.max_chat_history:
-        truncated_messages = chat_history.messages[-configs.max_chat_history:]
-        chat_history.clear()
-        for msg in truncated_messages:
-            chat_history.add_message(msg)
-
-    # Add the user's message to database
-    crud.create_conversation(
-        db=db,
-        conversation={
-            "message": message.content,
-            "role": "user",
-            "user_id": user_id,
-            "character_id": character_id,
-        },
-    )
-    # Set the session_id and character_prompt in the config
-    config = {
-        "configurable": {
-            "session_id": session_id,
-            "character_prompt": configs.chat_prompt[character_name],
-        }
-    }
-
-    # Get the bot's response
-    chat_reply = chat_with_history.invoke(
-        {
-            "messages": [HumanMessage(content=message.content)],
-            "character_prompt": configs.chat_prompt[character_name],
-        }, 
-        config=config,
-    ).content
-
-    # Translate the bot's response
-    if message.language == "en":
-        translation = translate_chain_en.invoke(
-            {"messages": [HumanMessage(content=chat_reply)]}
-        ).content
-    elif message.language == "zh":
-        translation = translate_chain_zh.invoke(
-            {"messages": [HumanMessage(content=chat_reply)]}
-        ).content
-    # Add the bot's response to database
-    crud.create_conversation(
-        db=db,
-        conversation={
-            "message": chat_reply,
-            "translation": translation,
-            "role": "assistant",
-            "user_id": user_id,
-            "character_id": character_id,
-        },
-    )
-    return {'message': chat_reply, 'translation': translation}
-
-
-@app.post("/api/chat/{character_id}")
-@limiter.limit("10/minute")
-async def chat(
-    request: Request, 
-    character_id: int,
-    message: schemas.Message,
-    db: Session = Depends(get_db)
-):
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(None, chat_handler, request, character_id, message, db)
-
-def stt_handler(
-    request: Request,
-    audio: Annotated[UploadFile, File()],
-):
-    # Get the user's info from the token
-    current_user = get_current_user_from_token(request)
-    # Check if the audio file is in a supported format
-    supported_formats = ['audio/flac', 'audio/m4a', 'audio/mp3', 'audio/mp4', 'audio/mpeg', 'audio/mpga', 'audio/oga', 'audio/ogg', 'audio/wav', 'audio/webm']
-    if audio.content_type not in supported_formats:
-        return {"error": "Unsupported file format. Please upload a valid audio file."}
-    # Save the audio file locally
-    file_location = f"{audio.filename}"
-    with open(file_location, "wb") as buffer:
-        shutil.copyfileobj(audio.file, buffer)
-    try:
-        # Transcribe the audio file
-        file = open(file_location, "rb")
-        transcription = client.audio.transcriptions.create(
-            model="whisper-1",
-            file=file,
-        )
-        file.close()
-    except Exception as e:
-        print(f"Error during transcription: {e}")
-        return {"error": str(e)}
-
-    return {
-        "transcription": transcription.text,
-    }
-
-@app.post("/api/stt")
-@limiter.limit("10/minute")
-async def stt(
-    request: Request,
-    audio: Annotated[UploadFile, File()],
-):
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(None, stt_handler, request, audio)
 
 
 @app.middleware("http")
@@ -238,13 +128,56 @@ async def cache_characters(request: Request, call_next):
         )
     return await call_next(request)
 
-def get_characters_handler(
-    db: Session,
-    skip: int,
-    limit: int,
-) -> list[schemas.Character]:
-    print("querying database...")
-    return crud.get_characters(db, skip=skip, limit=limit)
+
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    
+    # Record metrics
+    duration = time.time() - start_time
+    REQUEST_COUNT.labels(
+        method=request.method,
+        endpoint=request.url.path,
+        status=response.status_code
+    ).inc()
+    REQUEST_LATENCY.observe(duration)
+    
+    # Log request details
+    logger.info(
+        f"Request: {request.method} {request.url.path} - "
+        f"Status: {response.status_code} - "
+        f"Duration: {duration:.2f}s - "
+        f"Client: {request.client.host}"
+    )
+    
+    return response
+
+
+@app.post("/api/chat/{character_id}")
+@limiter.limit("10/minute")
+async def chat(
+    request: Request, 
+    character_id: int,
+    message: schemas.Message,
+    db: Session = Depends(get_db)
+):
+    logger.info(f"Chat request - Character: {character_id} - Message: {message.content[:50]}...")
+    if not validate_user_input(message.content):
+        logger.warning(f"Invalid input detected: {message.content[:50]}...")
+        raise HTTPException(status_code=400, detail="Invalid input")
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, chat_handler, request, character_id, message, db)
+
+
+@app.post("/api/stt")
+@limiter.limit("10/minute")
+async def stt(
+    request: Request,
+    audio: Annotated[UploadFile, File()],
+):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, stt_handler, request, audio)
 
 
 @app.get("/api/characters")
@@ -255,16 +188,6 @@ async def get_characters(
 ) -> list[schemas.Character]:
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, get_characters_handler, db, skip, limit)
-
-
-def create_user_handler(
-    db: Session,
-    user: schemas.UserCreate,
-) -> schemas.User:
-    db_user = crud.get_user_by_username(db, username=user.username)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=user)
 
 
 @app.post("/api/users", response_model=schemas.User)
@@ -278,13 +201,6 @@ async def create_user(
     return await loop.run_in_executor(None, create_user_handler, db, user)
 
 
-def read_users_handler(
-    db: Session,
-    skip: int,
-    limit: int,
-) -> list[schemas.User]:
-    return crud.get_users(db, skip=skip, limit=limit)
-
 @app.get("/api/users", response_model=list[schemas.User])
 async def read_users(
     skip: int = 0,
@@ -295,15 +211,6 @@ async def read_users(
     return await loop.run_in_executor(None, read_users_handler, db, skip, limit)
 
 
-def read_user_handler(
-    db: Session,
-    user_id: int,
-) -> schemas.User:
-    db_user = crud.get_user(db, user_id=user_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
-
 @app.get("/api/users/{user_id}", response_model=schemas.User)
 async def read_user(
     user_id: int,
@@ -313,12 +220,6 @@ async def read_user(
     return await loop.run_in_executor(None, read_user_handler, db, user_id)
 
 
-def create_conversation_handler(
-    db: Session,
-    conversation: schemas.ConversationCreate,
-) -> schemas.Conversation:
-    return crud.create_conversation(db=db, conversation=conversation.model_dump())
-
 @app.post("/api/conversations", response_model=schemas.Conversation)
 async def create_conversation(
     conversation: schemas.ConversationCreate,
@@ -327,23 +228,6 @@ async def create_conversation(
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, create_conversation_handler, db, conversation)
 
-def get_conversations_handler(
-    db: Session,
-    user_id: int,
-    character_id: int,
-    skip: int,
-    limit: int,
-) -> list[schemas.Conversation]:
-    print("querying database...")
-    conversations = crud.get_conversations(
-        db=db,
-        user_id=user_id,
-        character_id=character_id,
-        skip=skip,
-        limit=limit
-    )
-    conversations.reverse()
-    return conversations
 
 @app.get("/api/conversations", response_model=list[schemas.Conversation])
 async def get_conversations(
@@ -356,23 +240,6 @@ async def get_conversations(
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, get_conversations_handler, db, user_id, character_id, skip, limit)
 
-def create_token_handler(
-    db: Session,
-    form_data: OAuth2PasswordRequestForm,
-) -> dict:
-    user = crud.get_user_by_username(db, username=form_data.username)
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid username or password")
-    if not security.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Invalid username or password")
-    token = security.generate_token(user.id, user.username)
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "expires_at": int(time.time()) + 60 * int(os.environ.get('TOKEN_EXPIRE_MINUTES')),
-        "user_id": user.id,
-        "username": user.username,
-        }
 
 @app.post("/api/token")
 @limiter.limit("100/minute")
@@ -383,6 +250,81 @@ async def create_token(
 ):
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, create_token_handler, db, form_data)
+
+
+@app.get("/api/voice_output/{conversation_id}")
+async def get_audio(
+    conversation_id: int,
+    db: Session = Depends(get_db),
+):
+    logger.info(f"Getting audio for conversation: {conversation_id}")
+    conversation = crud.get_conversation(db, conversation_id)
+    if not conversation:
+        logger.error("Conversation not found")
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    file_path = conversation.audio_url
+    split_path = file_path.split('/')
+    local_path = os.path.join(os.getcwd(), split_path[-2], split_path[-1])
+    if not os.path.exists(local_path):
+        logger.error(f"File not found: {file_path}")
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(local_path, filename=split_path[-1])
+
+
+@app.post("/api/save_audio/{conversation_id}")
+@limiter.limit("10/minute")
+async def save_audio(
+    request: Request,
+    conversation_id: int,
+    audio: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, save_audio_handler, conversation_id, audio, db)
+
+
+@app.get("/api/download_audio/{conversation_id}")
+async def download_audio(
+    conversation_id: int,
+    db: Session = Depends(get_db),
+):
+    audio_url = crud.get_audio_url(db, conversation_id)
+    return FileResponse(audio_url)
+
+
+@app.get("/api/search_character/{name}")
+async def search_character(
+    name: str,
+    db: Session = Depends(get_db),
+):
+    if not validate_user_input(name):
+        raise HTTPException(status_code=400, detail="Invalid input")
+    return crud.search_character_by_name(db, name)
+
+
+@app.get("/api/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": time.time()}
+
+
+@app.get("/api/metrics")
+async def metrics():
+    return Response(generate_latest(), media_type="text/plain")
+
+
+@app.post("/api/analytics/event")
+async def track_event(
+    event: schemas.AnalyticsEvent,
+    current_user: schemas.User = Depends(get_current_user_from_token)
+):
+    USER_ACTIONS.labels(action_type=event.event_type).inc()
+    logger.info(
+        f"Analytics Event - User: {current_user.id} - "
+        f"Type: {event.event_type} - "
+        f"Data: {event.event_data}"
+    )
+    return {"status": "recorded"}
+
 
 if __name__ == "__main__":
     import uvicorn

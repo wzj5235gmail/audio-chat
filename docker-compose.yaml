@@ -22,20 +22,20 @@ services:
     env_file:
       - backend/.env
 
-  voice-generation:
-    image: wzj5235/voice-generation:latest
-    # image: wzj5235/voice-generation:test
-    ports:
-      - "9880:9880"
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+  # voice-generation:
+  #   image: wzj5235/voice-generation:latest
+  #   # image: wzj5235/voice-generation:test
+  #   ports:
+  #     - "9880:9880"
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 4G
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
 
   mysql:
     image: wzj5235/audio-chat-mysql:latest

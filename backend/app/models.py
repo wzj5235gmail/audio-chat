@@ -26,6 +26,7 @@ class Conversation(database.Base):
     role = Column(String(255), index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     character_id = Column(Integer, ForeignKey("characters.id"))
+    audio_url = Column(String(255))
 
     user = relationship("User", back_populates="conversation")
     character = relationship("Character", back_populates="conversation")

@@ -51,3 +51,7 @@ class Character(BaseModel):
     refer_path: str
     refer_text: str
 
+
+class AnalyticsEvent(BaseModel):
+    event_type: str
+    event_data: dict

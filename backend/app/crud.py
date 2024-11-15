@@ -95,5 +95,27 @@ def create_conversation(
     db.refresh(db_conversation)
     return db_conversation
 
+
 def get_all_characters(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Character).offset(skip).limit(limit).all()
+
+
+def update_audio_url(db: Session, conversation_id: int, audio_url: str):
+    db_conversation = db.query(models.Conversation).filter(models.Conversation.id == conversation_id).first()
+    db_conversation.audio_url = audio_url
+    db.commit()
+    db.refresh(db_conversation)
+    return db_conversation
+
+
+def get_audio_url(db: Session, conversation_id: int):
+    db_conversation = db.query(models.Conversation).filter(models.Conversation.id == conversation_id).first()
+    return db_conversation.audio_url
+
+
+def get_conversation(db: Session, conversation_id: int):
+    return db.query(models.Conversation).filter(models.Conversation.id == conversation_id).first()
+
+
+def search_character_by_name(db: Session, name: str):
+    return db.query(models.Character).filter(models.Character.name.like(f"%{name}%")).all()
