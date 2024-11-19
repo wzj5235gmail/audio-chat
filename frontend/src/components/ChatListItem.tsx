@@ -31,11 +31,11 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
   const [msg, setMsg] = useState<string>("");
   const [date, setDate] = useState<string>("");
   const userId = localStorage.getItem("user_id");
-  
-  
+
+
   useEffect(() => {
-    const getLatestConversation = async (userId: string, characterId: number) => {
-      const data: ConversationResponse[] = await getConversations(parseInt(userId), characterId, 1);
+    const getLatestConversation = async (userId: string, characterId: string) => {
+      const data: ConversationResponse[] = await getConversations(userId, characterId, 1);
       if (data.length === 0) return;
       // format date
       const dateFromTs = new Date(Number(data[0].created_at));

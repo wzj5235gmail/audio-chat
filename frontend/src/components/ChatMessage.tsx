@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, memo, useContext } from "react";
-import { LanguageContext } from "../contexts/LanguageContext";
+import React, { useEffect, useRef, memo } from "react";
 import { Character } from "../interfaces/interfaces";
+import ChatMessageAudio from "./ChatMessageAudio";
+import ChatMessageText from "./ChatMessageText";
 
 interface ChatMessageProps {
   message: string;
@@ -8,7 +9,6 @@ interface ChatMessageProps {
   audioUrl?: string;
   loading?: boolean;
   translation?: string;
-  isAudio?: boolean;
   currCharacter: Character;
 }
 
@@ -18,13 +18,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
   audioUrl,
   loading,
   translation,
-  isAudio,
   currCharacter,
 }) => {
-  const { t } = useContext(LanguageContext);
   const ref = useRef<HTMLDivElement>(null);
   const ref2 = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(new Audio());
 
   useEffect(() => {
     if (ref.current) {
@@ -43,55 +40,24 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
     }
   }, [isUser]);
 
-  const handlePlayAudio = () => {
-    audioRef.current.src = audioUrl || '';
-    audioRef.current.play().catch((error) => {
-      alert(`Error playing audio: ${error}`);
-    });
-  };
 
   return (
     <div className="flex items-start gap-4 mb-4" ref={ref}>
-      {/* <div className="avatar h-14 w-16"> */}
       <img
         src={isUser ? "user-avatar.jpg" : currCharacter.avatar_uri}
         alt=""
         className="object-cover rounded-lg h-12 w-12"
       />
-      {/* </div> */}
       <div className="flex flex-col w-full" ref={ref2}>
-        {isAudio && (
-          <div
-            className="message rounded-lg mb-2 px-4 py-2 text-start"
-            style={{
-              backgroundColor: isUser ? "#8785a2" : "#ffe2e2",
-              color: isUser ? "#ffffff" : "#000000",
-            }}
-            onClick={handlePlayAudio}
-          >
-            {loading ? (
-              <span className=" text-gray-400">{t("speaking")}</span>
-            ) : (
-              // <img src="voice-icon.png" alt="" className="h-4 w-4" />
-              <img src="soundwave.gif" alt="" className="h-10 w-10" />
-            )}
-          </div>
+        {!isUser && (
+          <ChatMessageAudio isUser={isUser} audioUrl={audioUrl} loading={loading} />
         )}
-        <div
-          className="message rounded-lg"
-          style={{
-            maxWidth: "70%",
-            backgroundColor: isUser ? "#8785a2" : "#ffe2e2",
-            color: isUser ? "#ffffff" : "#000000",
-          }}
-        >
-          <div className="originalMsg py-2 px-4 text-start">{message}</div>
-          {translation && (
-            <div className="translation py-2 px-4 text-start border-t border-gray-300">
-              {translation}
-            </div>
-          )}
-        </div>
+        {isUser && (
+          <ChatMessageText message={message} isUser={isUser} translation={translation} />
+        )}
+        {!isUser && audioUrl && (
+          <ChatMessageText message={message} isUser={isUser} translation={translation} />
+        )}
       </div>
     </div>
   );

@@ -56,11 +56,18 @@ jobs:
         SSH_PORT: ${{ secrets.SSH_PORT }}
       run: |
         ssh -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+        echo "cd /root"
         cd /root
+        echo "tar -xzvf frontend.tar.gz"
         tar -xzvf frontend.tar.gz
+        echo "rm frontend.tar.gz"
         rm frontend.tar.gz
+        echo "rm -rf /var/www/html/*"
         rm -rf /var/www/html/*
+        echo "mv build/* /var/www/html/"
         mv build/* /var/www/html/
+        echo "rm -rf build"
         rm -rf build
+        echo "systemctl restart nginx"
         systemctl restart nginx
         EOF

@@ -4,3 +4,7 @@
   -webkit-touch-callout: none;
   touch-action: manipulation;
 }
+
+audio::-webkit-media-controls-panel {
+  background-color: #fff;
+}

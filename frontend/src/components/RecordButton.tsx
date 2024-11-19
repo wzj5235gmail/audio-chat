@@ -99,7 +99,7 @@ const RecordButton: React.FC<RecordButtonProps> = ({
             time: Date.now(),
             role: "user",
             message: "...",
-            audioUrl,
+            audio_url: audioUrl,
             isAudio: true,
           },
         });

@@ -1,5 +1,5 @@
 interface Character {
-  id: number;
+  id: string;
   name: string;
   avatar_uri: string;
   gpt_model_path: string;

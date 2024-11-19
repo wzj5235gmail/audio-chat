@@ -1,54 +1,32 @@
-version: '2'
-
 services:
-  # frontend:
-  #   image: wzj5235/audio-chat-frontend:latest
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - backend
-  #     - voice-generation
-  #   env_file:
-  #     - /root/.env.frontend
 
   backend:
     image: wzj5235/audio-chat-backend:latest
     ports:
       - "8000:8000"
     depends_on:
-      mysql:
+      mongodb:
         condition: service_healthy
       redis:
         condition: service_healthy
     env_file:
       - ~/.env
 
-  # voice-generation:
-  #   image: wzj5235/voice-generation:latest
-  #   ports:
-  #     - "9880:9880"
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 4G
-  #       reservations:
-  #         devices:
-  #           - driver: nvidia
-  #             count: 1
-  #             capabilities: [gpu]
-
-  mysql:
-    image: wzj5235/audio-chat-mysql:latest
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    ports:
+      - "27017:27017"
     env_file:
       - ~/.env
     volumes:
-      - ~/mysql_data:/var/lib/mysql
+      - mongodb_data:/data/db
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 30s
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
       timeout: 10s
       retries: 5
       start_period: 5s
+
 
   redis:
     image: redis:latest
@@ -62,3 +40,17 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+
+volumes:
+  mongodb_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ~/mongodb_data
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ~/redis_data

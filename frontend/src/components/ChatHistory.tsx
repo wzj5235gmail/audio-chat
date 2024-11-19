@@ -13,12 +13,12 @@ interface ChatHistoryProps {
 
 const ChatHistory: React.FC<ChatHistoryProps> = ({ history, dispatch, currCharacter }) => {
   const chatHistoryRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
     if (!userId) return;
     const getHistory = async (userId: string) => {
-      const historyFromDB = await getConversations(parseInt(userId), currCharacter.id);
+      const historyFromDB = await getConversations(userId, currCharacter.id);
       dispatch({ type: "INIT_HISTORY", payload: historyFromDB });
     };
     getHistory(userId);
@@ -42,10 +42,9 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ history, dispatch, currCharac
             key={item.time}
             message={item.message}
             isUser={item.role === "user"}
-            audioUrl={item.audioUrl}
+            audioUrl={item.audio_url}
             loading={item.loading}
             translation={item.translation}
-            isAudio={item.isAudio}
             currCharacter={currCharacter}
           />
         ))}

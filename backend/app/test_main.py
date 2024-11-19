@@ -31,7 +31,7 @@ def setup_module(module):
     db = TestingSessionLocal()
     test_user = User(username="testuser", hashed_password=hash_password("testpassword"))
     db.add(test_user)
-    test_character = Character(name="Test Character", avatar_uri="https://example.com/avatar.png", bg_uri="https://example.com/bg.png")
+    test_character = Character(name="Test Character", avatar_uri="https://example.com/avatar.png", gpt_model_path="https://example.com/avatar.png", sovits_model_path="https://example.com/avatar.png", refer_path="https://example.com/avatar.png", refer_text="https://example.com/avatar.png")
     db.add(test_character)
     test_conversation = Conversation(user_id=test_user.id, character_id=test_character.id, message="Hello", translation="你好")
     db.add(test_conversation)

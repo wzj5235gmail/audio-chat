@@ -3,7 +3,7 @@ import RecordButton from "./RecordButton";
 import { LanguageContext } from "../contexts/LanguageContext";
 import { Character } from "../interfaces/interfaces";
 import { HistoryAction } from "../reducers/historyReducer";
-import { generateVoice, saveAudio, sendChatMessage } from "../api/api";
+import { generateVoice, saveAudio, sendChatMessage, updateConversation } from "../api/api";
 
 interface HistoryItem {
   time: number;
@@ -50,6 +50,14 @@ const SendMsg: React.FC<SendMsgProps> = ({
       return;
     }
     setMessage("");
+    dispatch({
+      type: "ADD_HISTORY",
+      payload: {
+        time: Date.now(),
+        role: "user",
+        message: message,
+      },
+    });
     const chatResponse = await sendChatMessage(currCharacter.id, message, language);
     if (!chatResponse) {
       alert(t("failedToSendMessage"));
@@ -83,16 +91,12 @@ const SendMsg: React.FC<SendMsgProps> = ({
       alert(t("failedToGenerateAudio"));
       return;
     }
-    const audioUrlResponse = await saveAudio(audioResponse, conversationId);
-    if (!audioUrlResponse) {
-      alert(t("failedToGenerateAudio"));
-      return;
-    }
-    const audioUrl = audioUrlResponse.audio_url;
+    const blob = new Blob([audioResponse], { type: "audio/aac" });
+    const audioUrl = URL.createObjectURL(blob);
     dispatch({
       type: "CHANGE_LAST_HISTORY",
       payload: {
-        field: "audioUrl",
+        field: "audio_url",
         value: audioUrl,
       },
     });
@@ -107,6 +111,17 @@ const SendMsg: React.FC<SendMsgProps> = ({
       audioRef.current.src = audioUrl;
       audioRef.current.play();
     }
+    const audio_url = await saveAudio(audioResponse, conversationId);
+    if (!audio_url) {
+      alert(t("failedToGenerateAudio"));
+      return;
+    }
+    const updatedConversation = await updateConversation(conversationId, audio_url);
+    if (!updatedConversation) {
+      alert(t("failedToUpdateConversation"));
+      return;
+    }
+    console.log(updatedConversation);
   }
 
   return (

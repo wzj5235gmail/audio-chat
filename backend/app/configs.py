@@ -127,7 +127,8 @@ db_init = [
         "gpt_model_path": "GPT_weights/megumi20240607-e15.ckpt", 
         "sovits_model_path": "SoVITS_weights/megumi20240607_e8_s200.pth", 
         "refer_path": "refer/megumi/megumi-1.wav", 
-        "refer_text": "主人公相手だって考えればいいのか"
+        "refer_text": "主人公相手だって考えればいいのか",
+        "prompt": chat_prompt[1]
     },
     {
         "name": "泽村英梨梨", 
@@ -135,7 +136,8 @@ db_init = [
         "gpt_model_path": "GPT_weights/eriri-e15.ckpt", 
         "sovits_model_path": "SoVITS_weights/eriri_e8_s248.pth", 
         "refer_path": "refer/eriri/eriri-2.wav", 
-        "refer_text": "そんなわけでさ 今ラフデザインやってるんだけど"
+        "refer_text": "そんなわけでさ 今ラフデザインやってるんだけど",
+        "prompt": chat_prompt[2]
     },
     {
         "name": "霞之丘诗羽", 
@@ -143,7 +145,8 @@ db_init = [
         "gpt_model_path": "GPT_weights/utaha-e15.ckpt", 
         "sovits_model_path": "SoVITS_weights/utaha_e8_s256.pth", 
         "refer_path": "refer/utaha/utaha-2.wav", 
-        "refer_text": "はいそれじゃあ次のシーン 最初はヒロインの方から抱きついてくる"
+        "refer_text": "はいそれじゃあ次のシーン 最初はヒロインの方から抱きついてくる",
+        "prompt": chat_prompt[3]
     },
     {
         "name": "周防有希", 
@@ -151,7 +154,8 @@ db_init = [
         "gpt_model_path": "GPT_weights/Suou_Yuki-e15.ckpt", 
         "sovits_model_path": "SoVITS_weights/Suou_Yuki_e12_s132.pth", 
         "refer_path": "refer/yuki/SPEAKER_06_segment_186.wav", 
-        "refer_text": "その際政近君に今日はいつもと違う服装がしたいとお願いしてこのシャツをお借りしたんです"
+        "refer_text": "その際政近君に今日はいつもと違う服装がしたいとお願いしてこのシャツをお借りしたんです",
+        "prompt": chat_prompt[4]
     },
     {
         "name": "艾米利亚",
@@ -159,7 +163,8 @@ db_init = [
         "gpt_model_path": "GPT_weights/Emiria-e15.ckpt",
         "sovits_model_path": "SoVITS_weights/Emiria_e12_s180.pth",
         "refer_path": "refer/emiria/SPEAKER_07_segment_83.wav",
-        "refer_text": "このウネウネ森も前より雪が深いみたい"
+        "refer_text": "このウネウネ森も前より雪が深いみたい",
+        "prompt": chat_prompt[5]
     }
 ]
 

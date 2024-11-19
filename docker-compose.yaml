@@ -15,12 +15,12 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      mysql:
+      mongodb:
         condition: service_healthy
       redis:
         condition: service_healthy
     env_file:
-      - backend/.env
+      - .env
 
   # voice-generation:
   #   image: wzj5235/voice-generation:latest
@@ -37,16 +37,31 @@ services:
   #             count: 1
   #             capabilities: [gpu]
 
-  mysql:
-    image: wzj5235/audio-chat-mysql:latest
+  # mysql:
+  #   image: wzj5235/audio-chat-mysql:latest
+  #   ports:
+  #     - "3306:3306"
+  #   env_file:
+  #     - backend/.env
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 5s
+  
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
     ports:
-      - "3306:3306"
+      - "27017:27017"
     env_file:
-      - backend/.env
+      - .env
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mongodb_data:/data/db
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
       timeout: 10s
       retries: 5
@@ -66,12 +81,12 @@ services:
       start_period: 5s
 
 volumes:
-  mysql_data:
+  mongodb_data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: C:\\Users\\Administrator\\Desktop\\mysql_data
+      device: C:\\Users\\Administrator\\Desktop\\mongodb_data
   redis_data:
     driver: local
     driver_opts:

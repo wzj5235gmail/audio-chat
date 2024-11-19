@@ -3,12 +3,12 @@ interface HistoryItem {
   message: string;
   role: string;
   translation?: string;
-  audioUrl?: string;
+  audio_url?: string;
   loading?: boolean;
   isAudio?: boolean;
 }
 
-type HistoryAction = 
+type HistoryAction =
   | { type: "INIT_HISTORY"; payload: HistoryItem[] }
   | { type: "ADD_HISTORY"; payload: HistoryItem }
   | { type: "CHANGE_LAST_HISTORY"; payload: { field: keyof HistoryItem; value: string | boolean } }

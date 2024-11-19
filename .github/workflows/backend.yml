@@ -43,5 +43,6 @@ jobs:
         SSH_PORT: ${{ secrets.SSH_PORT }}
       run: |
         ssh -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+        echo "docker compose up -d"
         docker compose up -d
         EOF
