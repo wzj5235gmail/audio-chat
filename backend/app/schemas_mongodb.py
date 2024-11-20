@@ -22,7 +22,7 @@ class Conversation(ConversationBase):
     user_id: PyObjectId
     character_id: PyObjectId
     created_at: str
-    audio_url: str | None = None
+    audio: str | None = None
 
     class Config:
         from_attributes = True
@@ -84,5 +84,5 @@ class AnalyticsEvent(BaseModel):
     event_data: dict
 
 
-class AudioUrlUpdate(BaseModel):
-    audio_url: str
+class AudioUpdate(BaseModel):
+    audio: str

@@ -25,7 +25,7 @@ class Conversation(BaseModel):
     role: str
     user_id: str
     character_id: str
-    audio_url: str | None = None
+    audio: bytes | None = None
 
     user: "User" = Field(default=None, alias="user")
     character: "Character" = Field(default=None, alias="character")

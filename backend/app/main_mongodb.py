@@ -316,13 +316,11 @@ async def save_audio(
 
 
 @app.put("/api/conversations/{conversation_id}")
-async def update_conversation_audio_url(
+async def update_conversation_audio(
     conversation_id: str,
-    audio_url: schemas.AudioUrlUpdate,
+    audio: schemas.AudioUpdate,
 ):
-    return await crud.update_conversation_audio_url(
-        conversation_id, audio_url.audio_url
-    )
+    return await crud.update_conversation_audio(conversation_id, audio.audio)
 
 
 @app.get("/api/search_character/{name}")

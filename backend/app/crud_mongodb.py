@@ -3,7 +3,7 @@ from .security import hash_password
 from . import schemas_mongodb as schemas, models_mongodb as models
 from bson import ObjectId
 import time
-
+import base64
 
 async def create_character_if_not_exists(
     name: str,
@@ -118,29 +118,16 @@ async def get_all_characters(skip: int = 0, limit: int = 100):
     return characters
 
 
-async def update_audio_url(conversation_id: str, audio_url: str):
-    await db.conversations.update_one(
-        {"_id": conversation_id}, {"$set": {"audio_url": audio_url}}
-    )
-    conversation = await db.conversations.find_one({"_id": ObjectId(conversation_id)})
-    conversation = schemas.Conversation(**conversation)
-    return conversation
-
-
-async def get_audio_url(conversation_id: str):
-    conversation = await db.conversations.find_one({"_id": ObjectId(conversation_id)})
-    return conversation["audio_url"]
-
-
 async def get_conversation(conversation_id: str):
     conversation = await db.conversations.find_one({"_id": ObjectId(conversation_id)})
     conversation = schemas.Conversation(**conversation)
     return conversation
 
 
-async def update_conversation_audio_url(conversation_id: str, audio_url: str):
+async def update_conversation_audio(conversation_id: str, audio: str):
+    audio = base64.b64decode(audio)
     await db.conversations.update_one(
-        {"_id": ObjectId(conversation_id)}, {"$set": {"audio_url": audio_url}}
+        {"_id": ObjectId(conversation_id)}, {"$set": {"audio": audio}}
     )
     conversation = await db.conversations.find_one({"_id": ObjectId(conversation_id)})
     conversation = schemas.Conversation(**conversation)
