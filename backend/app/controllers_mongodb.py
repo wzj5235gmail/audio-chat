@@ -25,7 +25,7 @@ import boto3
 import uuid
 import logging
 import traceback
-
+import base64
 
 logger = logging.getLogger(__name__)
 
@@ -221,6 +221,9 @@ async def get_conversations_handler(
     conversations = await crud.get_conversations(
         user_id=user_id, character_id=character_id, skip=skip, limit=limit
     )
+    for con in conversations:
+        if "audio" in con and con["audio"] is not None:
+            con["audio"] = base64.b64encode(con["audio"]).decode("utf-8")
     conversations.reverse()
     return conversations
 

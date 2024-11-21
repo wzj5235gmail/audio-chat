@@ -5,6 +5,7 @@ from bson import ObjectId
 import time
 import base64
 
+
 async def create_character_if_not_exists(
     name: str,
     avatar_uri: str,
@@ -129,9 +130,10 @@ async def update_conversation_audio(conversation_id: str, audio: str):
     await db.conversations.update_one(
         {"_id": ObjectId(conversation_id)}, {"$set": {"audio": audio}}
     )
-    conversation = await db.conversations.find_one({"_id": ObjectId(conversation_id)})
-    conversation = schemas.Conversation(**conversation)
-    return conversation
+    update_result = await db.conversations.find_one({"_id": ObjectId(conversation_id)})
+    if update_result:
+        return True
+    return False
 
 
 async def search_character_by_name(name: str):
