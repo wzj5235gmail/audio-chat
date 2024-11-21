@@ -21,6 +21,9 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
+    - name: Change tag of old image
+      run: docker tag wzj5235/audio-chat-backend:latest wzj5235/audio-chat-backend:old
+
     - name: Build backend Docker image
       run: docker build -t wzj5235/audio-chat-backend:latest ./backend
 
