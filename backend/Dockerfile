@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 8000
 
 # 运行FastAPI应用
-CMD ["python", "-m", "app.main_mongodb"]
+CMD ["python", "-m", "app.main"]

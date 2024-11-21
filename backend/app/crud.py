@@ -137,7 +137,7 @@ async def update_conversation_audio(conversation_id: str, audio: str):
     return False
 
 
-async def search_character_by_name(name: str):
+async def search_character_by_name(name: str, limit: int = 10):
     characters = await db.characters.find(
         {"name": {"$regex": name, "$options": "i"}}
     ).to_list(length=limit)
