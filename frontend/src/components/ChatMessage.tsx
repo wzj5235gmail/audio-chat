@@ -6,7 +6,7 @@ import ChatMessageText from "./ChatMessageText";
 interface ChatMessageProps {
   message: string;
   isUser: boolean;
-  audioUrl?: string;
+  audio?: string;
   loading?: boolean;
   translation?: string;
   currCharacter: Character;
@@ -15,7 +15,7 @@ interface ChatMessageProps {
 const ChatMessage: React.FC<ChatMessageProps> = ({
   message,
   isUser,
-  audioUrl,
+  audio,
   loading,
   translation,
   currCharacter,
@@ -50,12 +50,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
       />
       <div className="flex flex-col w-full" ref={ref2}>
         {!isUser && (
-          <ChatMessageAudio isUser={isUser} audioUrl={audioUrl} loading={loading} />
+          <ChatMessageAudio isUser={isUser} audio={audio} loading={loading} />
         )}
         {isUser && (
           <ChatMessageText message={message} isUser={isUser} translation={translation} />
         )}
-        {!isUser && audioUrl && (
+        {!isUser && audio && (
           <ChatMessageText message={message} isUser={isUser} translation={translation} />
         )}
       </div>

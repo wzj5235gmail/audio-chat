@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, memo, useContext } from "react";
 import { LanguageContext } from "../contexts/LanguageContext";
-import { getAudio } from "../api/api";
+import { decode } from "base64-arraybuffer";
 
 interface ChatMessageAudioProps {
   isUser: boolean;
-  audioUrl?: string;
+  audio?: string;
   loading?: boolean;
 }
 
 const ChatMessageAudio: React.FC<ChatMessageAudioProps> = ({
   isUser,
-  audioUrl,
+  audio,
   loading,
 }) => {
   const { t } = useContext(LanguageContext);
@@ -19,33 +19,29 @@ const ChatMessageAudio: React.FC<ChatMessageAudioProps> = ({
   useEffect(() => {
     let audioObjectUrl: string | null = null;
 
-    const handlePlayAudio = async () => {
+    const handleLoadAudio = async () => {
       try {
-        if (!audioRef.current) return;
-
-        if (audioUrl?.startsWith("/api")) {
-          const blob = await getAudio(audioUrl);
-          const audioBlob = new Blob([blob], { type: 'audio/mpeg' });
-          audioObjectUrl = URL.createObjectURL(audioBlob);
+        if (!audio) return;
+        const audioBytes = decode(audio);
+        const audioBlob = new Blob([audioBytes], { type: 'audio/mpeg' });
+        audioObjectUrl = URL.createObjectURL(audioBlob);
+        if (audioRef.current) {
           audioRef.current.src = audioObjectUrl;
-        } else {
-          audioRef.current.src = audioUrl || "";
+          audioRef.current.load();
         }
-
-        await audioRef.current.load();
       } catch (error) {
         console.error("Error loading audio:", error);
       }
     };
 
-    handlePlayAudio();
+    handleLoadAudio();
 
     return () => {
       if (audioObjectUrl) {
         URL.revokeObjectURL(audioObjectUrl);
       }
     };
-  }, [audioUrl]);
+  }, [audio]);
 
   useEffect(() => {
     if (audioRef.current) {

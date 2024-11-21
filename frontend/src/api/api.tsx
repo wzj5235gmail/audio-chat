@@ -73,31 +73,6 @@ const generateVoice = async (
   }
 }
 
-const saveAudio = async (audio: Blob, conversationId: string) => {
-  try {
-    const formData = new FormData();
-    formData.append("audio", audio, "audio.aac");
-    formData.append("conversation_id", conversationId);
-    const response = await fetch(`${api_url}/api/save_audio/${conversationId}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      body: formData,
-    });
-    if (!response.ok) {
-      console.error("Failed to upload audio file");
-      return null;
-    }
-    const data = await response.json();
-    return data.audio_url;
-  } catch (error) {
-    console.error("Failed to save audio", error);
-    return null;
-  }
-}
-
-
 const stt = async (audio: Blob) => {
   try {
     const formData = new FormData();
@@ -131,9 +106,9 @@ const getConversations = async (userId: string, characterId: string, limit: numb
     message: item.message,
     role: item.role,
     translation: item.translation,
-    audio_url: item.audio_url,
-    is_audio: item.audio_url ? true : false,
+    is_audio: item.audio ? true : false,
     id: item._id,
+    audio: item.audio,
   }));
   return historyFromDB;
 }
@@ -184,7 +159,7 @@ const register = async (username: string, password: string) => {
 }
 
 
-const updateConversation = async (conversationId: string, audio_url: string) => {
+const updateConversation = async (conversationId: string, audio: string) => {
   const response = await fetch(`${api_url}/api/conversations/${conversationId}`, {
     method: "PUT",
     headers: {
@@ -192,7 +167,7 @@ const updateConversation = async (conversationId: string, audio_url: string) => 
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      audio_url: audio_url,
+      audio: audio,
     }),
   });
   if (!response.ok) {
@@ -203,21 +178,13 @@ const updateConversation = async (conversationId: string, audio_url: string) => 
 }
 
 
-const getAudio = async (audio_url: string) => {
-  const response = await fetch(`${api_url}${audio_url}`);
-  return response.blob();
-}
-
-
 export {
   sendChatMessage,
   generateVoice,
-  saveAudio,
   stt,
   getConversations,
   fetchCharacters,
   login,
   register,
   updateConversation,
-  getAudio,
 };

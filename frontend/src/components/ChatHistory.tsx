@@ -42,10 +42,10 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ history, dispatch, currCharac
             key={item.time}
             message={item.message}
             isUser={item.role === "user"}
-            audioUrl={item.audio_url}
             loading={item.loading}
             translation={item.translation}
             currCharacter={currCharacter}
+            audio={item.audio}
           />
         ))}
     </div>

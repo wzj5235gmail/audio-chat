@@ -3,7 +3,9 @@ import RecordButton from "./RecordButton";
 import { LanguageContext } from "../contexts/LanguageContext";
 import { Character } from "../interfaces/interfaces";
 import { HistoryAction } from "../reducers/historyReducer";
-import { generateVoice, saveAudio, sendChatMessage, updateConversation } from "../api/api";
+import { generateVoice, sendChatMessage, updateConversation } from "../api/api";
+import { encode } from "base64-arraybuffer";
+
 
 interface HistoryItem {
   time: number;
@@ -12,7 +14,7 @@ interface HistoryItem {
   isAudio?: boolean;
   translation?: string;
   loading?: boolean;
-  audioUrl?: string;
+  audio?: string;
 }
 
 interface SendMsgProps {
@@ -29,7 +31,6 @@ const SendMsg: React.FC<SendMsgProps> = ({
   audioRef,
   setIsRecording,
   dispatch,
-  history,
   currCharacter,
   isLogin,
   setIsLoginModalOpen,
@@ -91,15 +92,16 @@ const SendMsg: React.FC<SendMsgProps> = ({
       alert(t("failedToGenerateAudio"));
       return;
     }
-    const blob = new Blob([audioResponse], { type: "audio/aac" });
-    const audioUrl = URL.createObjectURL(blob);
+    const audioResponseEncoded = encode(await audioResponse.arrayBuffer());
     dispatch({
       type: "CHANGE_LAST_HISTORY",
       payload: {
-        field: "audio_url",
-        value: audioUrl,
+        field: "audio",
+        value: audioResponseEncoded,
       },
     });
+    const blob = new Blob([audioResponse], { type: "audio/aac" });
+    const audioUrl = URL.createObjectURL(blob);
     dispatch({
       type: "CHANGE_LAST_HISTORY",
       payload: {
@@ -111,17 +113,11 @@ const SendMsg: React.FC<SendMsgProps> = ({
       audioRef.current.src = audioUrl;
       audioRef.current.play();
     }
-    const audio_url = await saveAudio(audioResponse, conversationId);
-    if (!audio_url) {
-      alert(t("failedToGenerateAudio"));
-      return;
-    }
-    const updatedConversation = await updateConversation(conversationId, audio_url);
+    const updatedConversation = await updateConversation(conversationId, audioResponseEncoded);
     if (!updatedConversation) {
       alert(t("failedToUpdateConversation"));
       return;
     }
-    console.log(updatedConversation);
   }
 
   return (

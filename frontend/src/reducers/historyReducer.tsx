@@ -3,7 +3,7 @@ interface HistoryItem {
   message: string;
   role: string;
   translation?: string;
-  audio_url?: string;
+  audio?: string;
   loading?: boolean;
   isAudio?: boolean;
 }

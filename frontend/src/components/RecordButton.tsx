@@ -92,14 +92,12 @@ const RecordButton: React.FC<RecordButtonProps> = ({
           console.error("Audio blob is empty");
           return;
         }
-        const audioUrl = URL.createObjectURL(audioBlob);
         dispatch({
           type: "ADD_HISTORY",
           payload: {
             time: Date.now(),
             role: "user",
             message: "...",
-            audio_url: audioUrl,
             isAudio: true,
           },
         });
