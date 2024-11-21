@@ -1,25 +1,15 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+import asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
 import os
-from dotenv import load_dotenv
-from pathlib import Path
+import dotenv
 
-# 强制重新加载环境变量
-load_dotenv(override=True)
+dotenv.load_dotenv(override=True)
 
-# 使用os.environ.get获取环境变量
-MYSQL_USER = os.environ.get("MYSQL_USER")
-MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD")
-MYSQL_SERVER = os.environ.get("MYSQL_SERVER")
-MYSQL_DB = os.environ.get("MYSQL_DB")
+MONGODB_URL = os.environ.get("MONGODB_URL")
+DATABASE_NAME = os.environ.get("MONGODB_DATABASE_NAME")
+if DATABASE_NAME is None:
+    raise ValueError("MONGODB_DATABASE_NAME environment variable is not set")
 
-SQLALCHEMY_DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_SERVER}/{MYSQL_DB}?charset=utf8mb4"
+client = AsyncIOMotorClient(MONGODB_URL, maxPoolSize=10, minPoolSize=10)
+db = client[DATABASE_NAME]
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=3600
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()

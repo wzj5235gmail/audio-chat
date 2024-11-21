@@ -1,46 +1,50 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import relationship
+from bson import ObjectId
+from typing import Optional, List, Annotated
+from pydantic import BaseModel, Field, ConfigDict, BeforeValidator
 
-# import database
-from . import database
+PyObjectId = Annotated[str, BeforeValidator(str)]
 
-
-class User(database.Base):
+class User(BaseModel):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True)
-    username = Column(String(255), unique=True, index=True)
-    hashed_password = Column(String(255))
-    is_active = Column(Boolean, default=True)
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    username: str
+    hashed_password: str
+    is_active: bool = True
 
-    conversation = relationship("Conversation", back_populates="user")
+    conversation: List["Conversation"] = []
 
 
-class Conversation(database.Base):
+class Conversation(BaseModel):
     __tablename__ = "conversations"
 
-    id = Column(Integer, primary_key=True)
-    message = Column(Text)
-    translation = Column(Text)
-    created_at = Column(String(255), index=True)
-    role = Column(String(255), index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    character_id = Column(Integer, ForeignKey("characters.id"))
-    audio_url = Column(String(255))
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    message: str
+    translation: str | None = None
+    created_at: str
+    role: str
+    user_id: str
+    character_id: str
+    audio: bytes | None = None
 
-    user = relationship("User", back_populates="conversation")
-    character = relationship("Character", back_populates="conversation")
+    user: "User" = Field(default=None, alias="user")
+    character: "Character" = Field(default=None, alias="character")
 
-class Character(database.Base):
+class Character(BaseModel):
     __tablename__ = "characters"
-    __table_args__ = {'mysql_charset': 'utf8mb4', 'mysql_collate': 'utf8mb4_unicode_ci'}
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(255), unique=True, index=True)
-    avatar_uri = Column(String(255))
-    gpt_model_path = Column(String(255))
-    sovits_model_path = Column(String(255))
-    refer_path = Column(String(255))
-    refer_text = Column(String(255))
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    name: str
+    avatar_uri: str
+    gpt_model_path: str
+    sovits_model_path: str
+    refer_path: str
+    refer_text: str
+    prompt: str
 
-    conversation = relationship("Conversation", back_populates="character")
+    conversation: List["Conversation"] = []
+    
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
