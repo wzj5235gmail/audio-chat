@@ -132,14 +132,14 @@ const Login = ({ setIsLogin, onClose }: LoginProps) => {
               {t("goToRegister")}
             </button>
           </div>
-          <div className="flex items-center justify-center mt-2">
+          {/* <div className="flex items-center justify-center mt-2">
             <button
               className="border hover:border-blue-500 text-blue-600 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
               onClick={handleTestUserLogin}
             >
               {t("testUserLogin")}
             </button>
-          </div>
+          </div> */}
         </>
       )}
       {showRegister && (
