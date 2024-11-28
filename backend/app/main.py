@@ -23,8 +23,10 @@ from .security import (
     SecurityHeadersMiddleware,
     XSSProtectionMiddleware,
     validate_user_input,
+    get_current_user,
 )
 from prometheus_client import Counter, Histogram, generate_latest
+from fastapi.responses import JSONResponse
 
 
 dotenv.load_dotenv(override=True)
@@ -84,6 +86,31 @@ async def startup_event():
             refer_text=character["refer_text"],
             prompt=character["prompt"],
         )
+
+
+NO_AUTHORIZATION_REQUIRED_ENDPOINTS = [
+    "/api/token",
+]
+
+
+@app.middleware("http")
+async def check_if_authorized(request: Request, call_next):
+    path = request.url.path
+    no_need_auth = any(
+        path.startswith(endpoint) for endpoint in NO_AUTHORIZATION_REQUIRED_ENDPOINTS
+    )
+    if no_need_auth:
+        return await call_next(request)
+    if not request.headers.get("Authorization"):
+        return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    current_user = await get_current_user(
+        request.headers.get("Authorization").split(" ")[1]
+    )
+    if not current_user:
+        return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    if current_user["expire_at"] < int(time.time()):
+        return JSONResponse(status_code=401, content={"detail": "Token expired"})
+    return await call_next(request)
 
 
 @app.middleware("http")
@@ -211,7 +238,7 @@ async def chat(
     )
     if not validate_user_input(message.content):
         logger.warning(f"Invalid input detected: {message.content[:50]}...")
-        raise HTTPException(status_code=400, detail="Invalid input")
+        return JSONResponse(status_code=400, content={"detail": "Invalid input"})
     return await chat_handler(request, character_id, message)
 
 
@@ -287,14 +314,16 @@ async def get_audio(
     conversation = await crud.get_conversation(conversation_id)
     if not conversation:
         logger.error("Conversation not found")
-        raise HTTPException(status_code=404, detail="Conversation not found")
+        return JSONResponse(
+            status_code=404, content={"detail": "Conversation not found"}
+        )
     try:
         return FileResponse(
             os.path.join(os.getcwd(), "voice_output", f"{conversation_id}.aac")
         )
     except FileNotFoundError:
         logger.error(f"File not found: {conversation_id}.aac")
-        raise HTTPException(status_code=404, detail="File not found")
+        return JSONResponse(status_code=404, content={"detail": "File not found"})
 
 
 @app.put("/api/conversations/{conversation_id}")
@@ -310,7 +339,7 @@ async def search_character(
     name: str,
 ):
     if not validate_user_input(name):
-        raise HTTPException(status_code=400, detail="Invalid input")
+        return JSONResponse(status_code=400, content={"detail": "Invalid input"})
     return await crud.search_character_by_name(name)
 
 

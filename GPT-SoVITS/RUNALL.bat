@@ -30,6 +30,6 @@ goto confirm2
 :: Step 3: 运行命令
 :run_all_2
 echo 正在执行第二步...
-runtime/python.exe RUNALL-2.py
+runtime\python.exe RUNALL-2.py
 echo 第二步已完成。
 pause
