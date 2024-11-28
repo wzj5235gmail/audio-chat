@@ -50,10 +50,10 @@ const Login = ({ setIsLogin, onClose }: LoginProps) => {
     }
   }
 
-  function handleTestUserLogin(e: FormEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    setLoginForm({ username: "abc@gmail.com", password: "123456" });
-  }
+  // function handleTestUserLogin(e: FormEvent<HTMLButtonElement>) {
+  //   e.preventDefault();
+  //   setLoginForm({ username: "abc@gmail.com", password: "123456" });
+  // }
 
   async function handleRegister(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
