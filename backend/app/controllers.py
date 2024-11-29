@@ -54,10 +54,10 @@ async def chat_handler(
             # Add the user's conversation history to the RedisChatMessageHistory
             conversations.reverse()
             for con in conversations:
-                if con.role == "user":
-                    chat_history.add_user_message(con.message)
-                elif con.role == "assistant":
-                    chat_history.add_ai_message(con.message)
+                if con["role"] == "user":
+                    chat_history.add_user_message(con["message"])
+                elif con["role"] == "assistant":
+                    chat_history.add_ai_message(con["message"])
 
         # If the chat history is longer than the maximum length, truncate it
         if len(chat_history.messages) > configs.max_chat_history:
