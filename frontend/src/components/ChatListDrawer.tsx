@@ -33,7 +33,7 @@ export function ChatListDrawer({
       open={isDrawerOpen}
       onClose={handleClose}
       className="w-full max-w-md p-0"
-      style={{ height: "90vh" }}
+      style={{ height: "85vh" }}
     >
       <ChatList
         {...{ setCurrCharacter, setIsChatting, setIsDrawerOpen, msg, setMsg, isLogin, setIsLoginModalOpen }}
