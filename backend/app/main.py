@@ -35,23 +35,8 @@ limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI()
 
-# 定义允许的域名列表
-ALLOWED_ORIGINS = [
-    "http://localhost",
-    "http://localhost:3000",
-    "https://animechat.live",
-    "https://www.animechat.live",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 app.state.limiter = limiter
+
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 if os.getenv("ENV") == "production":
@@ -114,43 +99,30 @@ async def check_if_authorized(request: Request, call_next):
 
 
 @app.middleware("http")
-async def cache_conversations(request: Request, call_next):
-    if request.method == "GET" and request.url.path == "/api/conversations":
+async def cache_response(request: Request, call_next):
+    # Only handle GET requests for conversations and characters
+    if request.method != "GET" or request.url.path not in [
+        "/api/conversations",
+        "/api/characters",
+    ]:
+        return await call_next(request)
+
+    # Generate cache key based on path and params
+    cache_key = "characters"
+    if request.url.path == "/api/conversations":
         user_id = request.query_params.get("user_id")
         character_id = request.query_params.get("character_id")
         skip = request.query_params.get("skip")
         limit = request.query_params.get("limit")
-        # check if the conversations are cached
         cache_key = f"conversations_{user_id}_{character_id}_{skip}_{limit}"
-        cached_data = await redis.get(cache_key)
-        if cached_data:
-            logger.info(f"Cache hit for {cache_key}")
-            return Response(
-                content=cached_data,
-                media_type="application/json",
-                headers={
-                    "Access-Control-Allow-Origin": request.headers.get(
-                        "origin", ALLOWED_ORIGINS[0]
-                    ),
-                    "Access-Control-Allow-Credentials": "true",
-                    "Access-Control-Allow-Methods": "GET",
-                    "Access-Control-Allow-Headers": "*",
-                },
-            )
-        logger.info(f"Cache miss for {cache_key}")
-        # get the response
-        response = await call_next(request)
-        # read the response content and cache it
-        response_body = [chunk async for chunk in response.body_iterator]
-        response_content = b"".join(response_body)
-        # cache the response content
-        await redis.set(
-            cache_key, response_content, ex=int(os.getenv("CACHE_EXPIRE_TIME_SECONDS"))
-        )
-        # return the new response
+
+    # Check cache
+    cached_data = await redis.get(cache_key)
+    if cached_data:
+        logger.info(f"Cache hit for {cache_key}")
         return Response(
-            content=response_content,
-            media_type=response.media_type,
+            content=cached_data,
+            media_type="application/json",
             headers={
                 "Access-Control-Allow-Origin": request.headers.get(
                     "origin", ALLOWED_ORIGINS[0]
@@ -160,47 +132,31 @@ async def cache_conversations(request: Request, call_next):
                 "Access-Control-Allow-Headers": "*",
             },
         )
-    return await call_next(request)
 
+    # Cache miss - get fresh response
+    logger.info(f"Cache miss for {cache_key}")
+    response = await call_next(request)
+    response_body = [chunk async for chunk in response.body_iterator]
+    response_content = b"".join(response_body)
 
-@app.middleware("http")
-async def cache_characters(request: Request, call_next):
-    if request.method == "GET" and request.url.path == "/api/characters":
-        cached_characters = await redis.get("characters")
-        if cached_characters:
-            return Response(
-                content=cached_characters,
-                media_type="application/json",
-                headers={
-                    "Access-Control-Allow-Origin": request.headers.get(
-                        "origin", ALLOWED_ORIGINS[0]
-                    ),
-                    "Access-Control-Allow-Credentials": "true",
-                    "Access-Control-Allow-Methods": "GET",
-                    "Access-Control-Allow-Headers": "*",
-                },
-            )
-        response = await call_next(request)
-        response_body = [chunk async for chunk in response.body_iterator]
-        response_content = b"".join(response_body)
-        await redis.set(
-            "characters",
-            response_content,
-            ex=int(os.getenv("CACHE_EXPIRE_TIME_SECONDS")),
-        )
-        return Response(
-            content=response_content,
-            media_type=response.media_type,
-            headers={
-                "Access-Control-Allow-Origin": request.headers.get(
-                    "origin", ALLOWED_ORIGINS[0]
-                ),
-                "Access-Control-Allow-Credentials": "true",
-                "Access-Control-Allow-Methods": "GET",
-                "Access-Control-Allow-Headers": "*",
-            },
-        )
-    return await call_next(request)
+    # Cache the response
+    await redis.set(
+        cache_key, response_content, ex=int(os.getenv("CACHE_EXPIRE_TIME_SECONDS"))
+    )
+
+    # Return response
+    return Response(
+        content=response_content,
+        media_type=response.media_type,
+        headers={
+            "Access-Control-Allow-Origin": request.headers.get(
+                "origin", ALLOWED_ORIGINS[0]
+            ),
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "GET",
+            "Access-Control-Allow-Headers": "*",
+        },
+    )
 
 
 @app.middleware("http")
@@ -224,6 +180,15 @@ async def metrics_middleware(request: Request, call_next):
     )
 
     return response
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.post("/api/chat/{character_id}")
