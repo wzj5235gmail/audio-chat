@@ -8,6 +8,7 @@ from fastapi import (
     File,
     HTTPException,
     Request,
+    Response,
     UploadFile,
 )
 from typing import Annotated
@@ -37,9 +38,10 @@ async def chat_handler(
         user_in_db = await crud.get_user(user_id=current_user["user_id"])
         chat_remaining = user_in_db.chat_remaining
         if chat_remaining <= 0:
-            return Response(
-                status_code=400, content={"error": "No chat chances remaining"}
-            )
+            return {
+                "status_code": 400,
+                "error": "No chat chances remaining",
+            }
         # Get the user's conversation history
         user_id = current_user["user_id"]
         # Use RedisChatMessageHistory with a combined session_id
@@ -122,14 +124,12 @@ async def chat_handler(
                 "character_id": character_id,
             },
         )
-        return Response(
-            status_code=200,
-            content={
-                "id": conversation.id,
-                "message": conversation.message,
-                "translation": conversation.translation,
-            },
-        )
+        return {
+            "status_code": 200,
+            "id": conversation.id,
+            "message": conversation.message,
+            "translation": conversation.translation,
+        }
     except Exception as e:
         logger.error(f"Error during chat: {e}")
         traceback.print_exc()

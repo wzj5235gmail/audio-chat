@@ -33,6 +33,8 @@ export const translations: Translations = {
     霞之丘诗羽: "Kasumigaoka Utaha",
     周防有希: "Suou Yuki",
     艾米利亚: "Emiria",
+    雷姆: "Remu",
+    鹿野千夏: "Kano Chinatsu",
     failedToGenerateAudio: "Failed to generate audio",
     noChatChancesRemaining: "No free chat chances remaining!",
   },
@@ -64,6 +66,8 @@ export const translations: Translations = {
     霞之丘诗羽: "霞之丘诗羽",
     周防有希: "周防有希",
     艾米利亚: "艾蜜莉亚",
+    雷姆: "雷姆",
+    鹿野千夏: "鹿野千夏",
     failedToGenerateAudio: "生成音频失败",
     noChatChancesRemaining: "免费对话次数已用完",
   }

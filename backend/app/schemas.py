@@ -39,6 +39,7 @@ class UserCreate(UserBase):
 class UserFromDB(UserBase):
     id: PyObjectId = Field(alias="_id", default=None)
     hashed_password: str
+    chat_remaining: int
 
     class Config:
         from_attributes = True
