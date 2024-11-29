@@ -82,6 +82,7 @@ async def startup_event():
 
 NO_AUTHORIZATION_REQUIRED_ENDPOINTS = [
     "/api/token",
+    "/api/users",
 ]
 
 
