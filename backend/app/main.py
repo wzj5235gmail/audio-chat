@@ -39,6 +39,13 @@ app.state.limiter = limiter
 
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+ALLOWED_ORIGINS = [
+    "https://animechat.live",
+    "https://www.animechat.live",
+    "http://localhost:3000",
+    "http://localhost",
+]
+
 if os.getenv("ENV") == "production":
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(XSSProtectionMiddleware)
