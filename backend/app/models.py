@@ -11,6 +11,7 @@ class User(BaseModel):
 
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     username: str
+    nickname: str = Field(default="")
     hashed_password: str
     is_active: bool = True
     created_at: str = Field(default=datetime.now().isoformat())

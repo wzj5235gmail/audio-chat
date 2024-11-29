@@ -22,6 +22,8 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
 
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
     const getCharacters = async () => {
       const characters = await fetchCharacters();
       setCharacters(characters);
@@ -34,6 +36,7 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
     localStorage.removeItem("token_expire_at");
     localStorage.removeItem("user_id");
     localStorage.removeItem("username");
+    localStorage.removeItem("nickname");
     window.location.reload();
   };
 
@@ -58,7 +61,7 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
       <div className="sticky bottom-0 p-4 border-t border-r flex justify-between items-center bg-white">
         {isLogin && (
           <button className="text-xl rounded border px-4 py-2 bg-white">
-            {localStorage.getItem("username")}
+            {localStorage.getItem("nickname")}
           </button>
         )}
         {isLogin ? (

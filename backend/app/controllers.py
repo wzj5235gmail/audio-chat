@@ -260,4 +260,5 @@ async def create_token_handler(
         + 60 * int(os.environ.get("TOKEN_EXPIRE_MINUTES")),
         "user_id": user.id,
         "username": user.username,
+        "nickname": user.nickname,
     }

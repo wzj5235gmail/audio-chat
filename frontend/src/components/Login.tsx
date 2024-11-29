@@ -19,6 +19,7 @@ interface LoginResponse {
   expires_at?: string;
   user_id?: string;
   username?: string;
+  nickname?: string;
 }
 
 interface RegisterResponse {
@@ -42,6 +43,7 @@ const Login = ({ setIsLogin, onClose }: LoginProps) => {
       localStorage.setItem("token_expire_at", data.expires_at || "");
       localStorage.setItem("user_id", data.user_id || "");
       localStorage.setItem("username", data.username || "");
+      localStorage.setItem("nickname", data.nickname || "");
       setIsLogin(true);
       setLoginForm({ username: "", password: "" });
       onClose();
