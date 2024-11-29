@@ -92,21 +92,6 @@ const RecordButton: React.FC<RecordButtonProps> = ({
           console.error("Audio blob is empty");
           return;
         }
-        dispatch({
-          type: "ADD_HISTORY",
-          payload: {
-            time: Date.now(),
-            role: "user",
-            message: "...",
-            isAudio: true,
-          },
-        });
-        const formData = new FormData();
-        formData.append(
-          "audio",
-          audioBlob,
-          mimeType === "audio/webm" ? "recording.webm" : "recording.mp4"
-        );
         const transcription = await stt(audioBlob);
         if (!transcription) {
           console.error("Failed to upload audio file");
