@@ -42,6 +42,10 @@ async def chat_handler(
                 "status_code": 400,
                 "error": "No chat chances remaining",
             }
+        # Update the user's chat remaining
+        await crud.update_user_chat_remaining(
+            user_id=current_user["user_id"], chat_remaining=chat_remaining - 1
+        )
         # Get the user's conversation history
         user_id = current_user["user_id"]
         # Use RedisChatMessageHistory with a combined session_id

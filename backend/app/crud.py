@@ -143,3 +143,9 @@ async def search_character_by_name(name: str, limit: int = 10):
     ).to_list(length=limit)
     characters = [schemas.Character(**character) for character in characters]
     return characters
+
+
+async def update_user_chat_remaining(user_id: str, chat_remaining: int):
+    await db.users.update_one(
+        {"_id": ObjectId(user_id)}, {"$set": {"chat_remaining": chat_remaining}}
+    )
