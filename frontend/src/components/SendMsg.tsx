@@ -64,6 +64,10 @@ const SendMsg: React.FC<SendMsgProps> = ({
       alert(t("failedToSendMessage"));
       return;
     }
+    if (chatResponse.status_code === 400 && chatResponse.error === "No chat chances remaining") {
+      alert(t("noChatChancesRemaining"));
+      return;
+    }
     const responseMsg = chatResponse.message;
     const conversationId = chatResponse.id;
     const translation = chatResponse.translation;
@@ -72,15 +76,15 @@ const SendMsg: React.FC<SendMsgProps> = ({
       payload: {
         time: Date.now(),
         role: "character",
-        message: responseMsg,
+        message: responseMsg || "",
         isAudio: true,
-        translation,
+        translation: translation || "",
         loading: true,
       },
     });
-    const resultToAudio = responseMsg.replace(/[\r|\n|\\s]+/g, "");
+    const resultToAudio = responseMsg?.replace(/[\r|\n|\\s]+/g, "");
     const audioResponse = await generateVoice(
-      resultToAudio,
+      resultToAudio || "",
       "日文",
       currCharacter.gpt_model_path,
       currCharacter.sovits_model_path,
@@ -113,7 +117,7 @@ const SendMsg: React.FC<SendMsgProps> = ({
       audioRef.current.src = audioUrl;
       audioRef.current.play();
     }
-    const updatedConversation = await updateConversation(conversationId, audioResponseEncoded);
+    const updatedConversation = await updateConversation(conversationId || "", audioResponseEncoded || "");
     if (!updatedConversation) {
       alert(t("failedToUpdateConversation"));
       return;

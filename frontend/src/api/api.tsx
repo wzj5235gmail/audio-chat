@@ -1,7 +1,9 @@
 interface ChatResponse {
-  message: string;
-  id: string;
-  translation: string;
+  message?: string;
+  id?: string;
+  translation?: string;
+  status_code: number;
+  error?: string;
 }
 
 const api_url = process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "";

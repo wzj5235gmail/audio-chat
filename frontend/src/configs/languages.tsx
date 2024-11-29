@@ -34,6 +34,7 @@ export const translations: Translations = {
     周防有希: "Suou Yuki",
     艾米利亚: "Emiria",
     failedToGenerateAudio: "Failed to generate audio",
+    noChatChancesRemaining: "No free chat chances remaining!",
   },
   zh: {
     login: "登录",
@@ -64,5 +65,6 @@ export const translations: Translations = {
     周防有希: "周防有希",
     艾米利亚: "艾蜜莉亚",
     failedToGenerateAudio: "生成音频失败",
+    noChatChancesRemaining: "免费对话次数已用完",
   }
 };

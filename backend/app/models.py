@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, ConfigDict, BeforeValidator
 
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
+
 class User(BaseModel):
     __tablename__ = "users"
 
@@ -11,6 +12,9 @@ class User(BaseModel):
     username: str
     hashed_password: str
     is_active: bool = True
+    created_at: str = Field(default=datetime.now().isoformat())
+    chat_remaining: int = 10
+    is_member: bool = False
 
     conversation: List["Conversation"] = []
 
@@ -21,7 +25,7 @@ class Conversation(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     message: str
     translation: str | None = None
-    created_at: str
+    created_at: str = Field(default=datetime.now().isoformat())
     role: str
     user_id: str
     character_id: str
@@ -29,6 +33,7 @@ class Conversation(BaseModel):
 
     user: "User" = Field(default=None, alias="user")
     character: "Character" = Field(default=None, alias="character")
+
 
 class Character(BaseModel):
     __tablename__ = "characters"
@@ -41,9 +46,10 @@ class Character(BaseModel):
     refer_path: str
     refer_text: str
     prompt: str
+    created_at: str = Field(default=datetime.now().isoformat())
 
     conversation: List["Conversation"] = []
-    
+
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
