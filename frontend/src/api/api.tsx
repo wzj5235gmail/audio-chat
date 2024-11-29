@@ -98,7 +98,12 @@ const stt = async (audio: Blob) => {
 
 const getConversations = async (userId: string, characterId: string, limit: number = 10) => {
   const response = await fetch(
-    `${api_url}/api/conversations?user_id=${userId}&character_id=${characterId}&limit=${limit}`
+    `${api_url}/api/conversations?user_id=${userId}&character_id=${characterId}&limit=${limit}`,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
   );
   const data = await response.json();
   const historyFromDB = data.map((item: any) => ({
