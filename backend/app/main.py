@@ -46,11 +46,11 @@ ALLOWED_ORIGINS = [
     "http://localhost",
 ]
 
-if os.getenv("ENV") == "production":
-    app.add_middleware(SecurityHeadersMiddleware)
-    app.add_middleware(XSSProtectionMiddleware)
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_ORIGINS)
-    app.add_middleware(GZipMiddleware, minimum_size=1000)
+# if os.getenv("ENV") == "production":
+#     app.add_middleware(SecurityHeadersMiddleware)
+#     app.add_middleware(XSSProtectionMiddleware)
+#     app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_ORIGINS)
+#     app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Set up logging
 logging.basicConfig(

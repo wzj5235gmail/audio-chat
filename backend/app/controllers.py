@@ -40,7 +40,11 @@ async def chat_handler(
         session_id = f"{user_id}_{character_id}"
         chat_history = RedisChatMessageHistory(
             session_id=session_id,
-            url=os.environ.get("REDIS_URL", "redis://localhost:6379"),
+            url=(
+                os.environ.get("REDIS_URL_DOCKER")
+                if os.environ.get("ENV") == "production"
+                else os.environ.get("REDIS_URL_LOCAL")
+            ),
         )
 
         # Check if the chat history is empty
