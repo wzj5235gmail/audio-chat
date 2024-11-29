@@ -20,7 +20,7 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
   const { t } = useContext(LanguageContext);
   const [characters, setCharacters] = useState<Character[]>([]);
 
-  
+
   useEffect(() => {
     const getCharacters = async () => {
       const characters = await fetchCharacters();
@@ -38,13 +38,13 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
   };
 
   return (
-    <div className="flex flex-col lg:min-w-[400px]" style={{ height: "100vh" }}>
-      <header className="bg-red-500 text-white py-4 grid grid-cols-12 items-center">
+    <div className="flex flex-col lg:min-w-[400px]">
+      <header className="bg-red-500 text-white py-4 grid grid-cols-12 items-center sticky top-0 z-10">
         <div className="col-span-3"></div>
         <h1 className="text-xl font-bold text-center col-span-6">{t("contacts")}</h1>
         <LanguageSwitcher />
-      </header>{" "}
-      <div className="flex-grow overflow-y-auto h-full">
+      </header>
+      <div className="overflow-y-auto flex-1">
         {characters.map((character) => (
           <ChatListItem
             key={character.id}
@@ -55,7 +55,7 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
           />
         ))}
       </div>
-      <div className="relative bottom-0 p-4 border-t border-r flex justify-between items-center">
+      <div className="sticky bottom-0 p-4 border-t border-r flex justify-between items-center bg-white">
         {isLogin && (
           <button className="text-xl rounded border px-4 py-2 bg-white">
             {localStorage.getItem("username")}
@@ -65,8 +65,8 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
           <button
             className="text-xl font-bold py-2 px-4 rounded bg-red-500 hover:bg-red-600 text-white"
             onClick={handleLogout}
-        >
-          <FiLogOut />
+          >
+            <FiLogOut />
           </button>
         ) : (
           <button

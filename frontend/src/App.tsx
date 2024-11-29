@@ -7,7 +7,7 @@ const App: FC = (): ReactElement => {
   return (
     <div
       className="App mx-auto"
-      style={{ height: "100vh", width: "100vw", minWidth: "400px" }}
+      style={{ height: "90vh", width: "100vw", minWidth: "400px" }}
     >
       <Main />
     </div>
