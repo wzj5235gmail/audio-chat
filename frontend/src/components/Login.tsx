@@ -45,6 +45,7 @@ const Login = ({ setIsLogin, onClose }: LoginProps) => {
       setIsLogin(true);
       setLoginForm({ username: "", password: "" });
       onClose();
+      window.location.reload();
     } else {
       alert(t("loginFailed"));
     }
