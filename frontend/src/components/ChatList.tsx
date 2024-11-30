@@ -61,7 +61,7 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
       <div className="sticky bottom-0 p-4 border-t border-r flex justify-between items-center bg-white">
         {isLogin && (
           <button className="text-xl rounded border px-4 py-2 bg-white">
-            {localStorage.getItem("nickname")}
+            {localStorage.getItem("nickname") ? localStorage.getItem("nickname") : localStorage.getItem("username")}
           </button>
         )}
         {isLogin ? (
