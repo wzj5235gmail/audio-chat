@@ -19,10 +19,12 @@ from .utils import (
     translate_chain_en,
     translate_chain_zh,
     client,
+    split_message,
 )
 import logging
 import traceback
 import base64
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -109,30 +111,46 @@ async def chat_handler(
             config=config,
         ).content
 
-        # Translate the bot's response
-        if message.language == "en":
-            translation = translate_chain_en.invoke(
-                {"messages": [HumanMessage(content=chat_reply)]}
-            ).content
-        elif message.language == "zh":
-            translation = translate_chain_zh.invoke(
-                {"messages": [HumanMessage(content=chat_reply)]}
-            ).content
-        # Add the bot's response to database
-        conversation = await crud.create_conversation(
-            conversation={
-                "message": chat_reply,
-                "translation": translation,
-                "role": "assistant",
-                "user_id": user_id,
-                "character_id": character_id,
-            },
-        )
+        responses = split_message(chat_reply)
+        # Create translation tasks for all responses while preserving order
+        translation_tasks = []
+        for response in responses:
+            if response == "":
+                continue
+            if message.language == "en":
+                task = translate_chain_en.ainvoke(
+                    {"messages": [HumanMessage(content=response)]}
+                )
+            elif message.language == "zh":
+                task = translate_chain_zh.ainvoke(
+                    {"messages": [HumanMessage(content=response)]}
+                )
+            translation_tasks.append(task)
+
+        # Wait for all translations to complete concurrently
+        translation_results = await asyncio.gather(*translation_tasks)
+        translations = [result.content for result in translation_results]
+        messages = []
+        # Save conversations with translations
+        for index, (response, translation) in enumerate(zip(responses, translations)):
+            created_at = str(int(time.time() * 1000))
+            conversation = await crud.create_conversation(
+                conversation={
+                    "message": response,
+                    "translation": translation,
+                    "role": "assistant",
+                    "user_id": user_id,
+                    "character_id": character_id,
+                },
+                created_at=created_at,
+            )
+            messages.append(
+                {"message": response, "translation": translation, "id": conversation.id}
+            )
         return {
             "status_code": 200,
             "id": conversation.id,
-            "message": conversation.message,
-            "translation": conversation.translation,
+            "messages": messages,
         }
     except Exception as e:
         logger.error(f"Error during chat: {e}")

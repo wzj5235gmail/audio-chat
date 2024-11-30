@@ -68,59 +68,62 @@ const SendMsg: React.FC<SendMsgProps> = ({
       alert(t("noChatChancesRemaining"));
       return;
     }
-    const responseMsg = chatResponse.message;
-    const conversationId = chatResponse.id;
-    const translation = chatResponse.translation;
-    dispatch({
-      type: "ADD_HISTORY",
-      payload: {
-        time: Date.now(),
-        role: "character",
-        message: responseMsg || "",
-        isAudio: true,
-        translation: translation || "",
-        loading: true,
-      },
-    });
-    const resultToAudio = responseMsg?.replace(/[\r|\n|\\s]+/g, "");
-    const audioResponse = await generateVoice(
-      resultToAudio || "",
-      "日文",
-      currCharacter.gpt_model_path,
-      currCharacter.sovits_model_path,
-      currCharacter.refer_path,
-      currCharacter.refer_text,
-      "日文"
-    );
-    if (!audioResponse) {
-      alert(t("failedToGenerateAudio"));
-      return;
-    }
-    const audioResponseEncoded = encode(await audioResponse.arrayBuffer());
-    dispatch({
-      type: "CHANGE_LAST_HISTORY",
-      payload: {
-        field: "audio",
-        value: audioResponseEncoded,
-      },
-    });
-    const blob = new Blob([audioResponse], { type: "audio/aac" });
-    const audioUrl = URL.createObjectURL(blob);
-    dispatch({
-      type: "CHANGE_LAST_HISTORY",
-      payload: {
-        field: "loading",
-        value: false,
-      },
-    });
-    if (audioRef.current) {
-      audioRef.current.src = audioUrl;
-      audioRef.current.play();
-    }
-    const updatedConversation = await updateConversation(conversationId || "", audioResponseEncoded || "");
-    if (!updatedConversation) {
-      alert(t("failedToUpdateConversation"));
-      return;
+    const responseMsgs = chatResponse.messages || [];
+    for (const responseMsg of responseMsgs) {
+      dispatch({
+        type: "ADD_HISTORY",
+        payload: {
+          time: Date.now(),
+          role: "character",
+          message: responseMsg.message || "",
+          isAudio: true,
+          translation: responseMsg.translation || "",
+          loading: true,
+        },
+      });
+      const resultToAudio = responseMsg.message.replace(/[\r|\n|\\s]+/g, "");
+      const audioResponse = await generateVoice(
+        resultToAudio || "",
+        "日文",
+        currCharacter.gpt_model_path,
+        currCharacter.sovits_model_path,
+        currCharacter.refer_path,
+        currCharacter.refer_text,
+        "日文"
+      );
+      if (!audioResponse) {
+        alert(t("failedToGenerateAudio"));
+        return;
+      }
+      const audioResponseEncoded = encode(await audioResponse.arrayBuffer());
+      dispatch({
+        type: "CHANGE_LAST_HISTORY",
+        payload: {
+          field: "audio",
+          value: audioResponseEncoded,
+        },
+      });
+      const blob = new Blob([audioResponse], { type: "audio/aac" });
+      const audioUrl = URL.createObjectURL(blob);
+      dispatch({
+        type: "CHANGE_LAST_HISTORY",
+        payload: {
+          field: "loading",
+          value: false,
+        },
+      });
+      if (audioRef.current) {
+        audioRef.current.src = audioUrl;
+        audioRef.current.play();
+      }
+      const updatedConversation = await updateConversation(responseMsg.id || "", audioResponseEncoded || "");
+      if (!updatedConversation) {
+        alert(t("failedToUpdateConversation"));
+        return;
+      }
+      // wait for random time between 5 and 10 seconds
+      const randomTime = Math.floor(Math.random() * 5000) + 5000;
+      await new Promise(resolve => setTimeout(resolve, randomTime));
     }
   }
 

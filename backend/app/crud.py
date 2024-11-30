@@ -102,10 +102,9 @@ async def get_conversations(
 
 async def create_conversation(
     conversation: schemas.ConversationCreate,
+    created_at: str = str(int(time.time() * 1000)),
 ):
-    db_conversation = models.Conversation(
-        **conversation, created_at=str(int(time.time() * 1000))
-    )
+    db_conversation = models.Conversation(**conversation, created_at=created_at)
     res = await db.conversations.insert_one(db_conversation.model_dump())
     conversation = await db.conversations.find_one({"_id": res.inserted_id})
     conversation = schemas.Conversation(**conversation)

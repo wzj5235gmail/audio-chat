@@ -9,6 +9,7 @@ import time
 import os
 from . import configs, database, security, schemas
 from typing import Literal
+import re
 
 
 def get_current_user_from_token(request: Request):
@@ -68,6 +69,11 @@ def get_translate_chain(language: Literal["en", "zh"]):
     )
     translate_chain = translate_prompt | model
     return translate_chain
+
+
+def split_message(message: str):
+    messages = re.split(r"(?<=[。！？～])", message)
+    return [msg for msg in messages if msg != ""]
 
 
 model = ChatOpenAI(
