@@ -38,7 +38,7 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
       setCharacters(characters);
     };
     getCharacters();
-  }, []);
+  }, [handleLogout]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

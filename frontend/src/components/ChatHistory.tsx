@@ -29,7 +29,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ history, dispatch, currCharac
       dispatch({ type: "INIT_HISTORY", payload: historyFromDB });
     };
     getHistory(userId);
-  }, [currCharacter.id, dispatch]);
+  }, [currCharacter.id, dispatch, handleLogout]);
 
   useEffect(() => {
     if (chatHistoryRef.current) {
