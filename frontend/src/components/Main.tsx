@@ -39,7 +39,7 @@ const Main = () => {
   }, [isLogin]);
 
   return (
-    <div id="chat" className="flex" style={{ height: "85vh", width: "100vw" }}>
+    <div id="chat" className="flex" style={{ height: window.innerWidth < 768 ? "85vh" : "100vh", width: "100vw" }}>
       <ChatListDrawer
         {...{
           setCurrCharacter,
