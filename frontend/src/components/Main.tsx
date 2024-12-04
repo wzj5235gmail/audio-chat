@@ -14,6 +14,15 @@ const Main = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const { t } = useContext(LanguageContext);
 
+  const handleLogout = (): void => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("token_expire_at");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("username");
+    localStorage.removeItem("nickname");
+    window.location.reload();
+  };
+
   // if not token or token expired, change login state
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -39,6 +48,7 @@ const Main = () => {
           setIsDrawerOpen,
           isLogin,
           setIsLoginModalOpen,
+          handleLogout
         }}
       />
       <div className="w-full">
@@ -51,6 +61,7 @@ const Main = () => {
               setIsDrawerOpen,
               isLogin,
               setIsLoginModalOpen,
+              handleLogout
             }}
           />
         ) : (

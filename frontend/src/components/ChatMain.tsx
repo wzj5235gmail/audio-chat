@@ -12,14 +12,16 @@ interface ChatMainProps {
   setIsDrawerOpen: (isOpen: boolean) => void;
   isLogin: boolean;
   setIsLoginModalOpen: (isOpen: boolean) => void;
+  handleLogout: () => void;
 }
 
-const ChatMain: React.FC<ChatMainProps> = ({ 
-  currCharacter, 
-  setIsLogin, 
-  setIsDrawerOpen, 
-  isLogin, 
-  setIsLoginModalOpen 
+const ChatMain: React.FC<ChatMainProps> = ({
+  currCharacter,
+  setIsLogin,
+  setIsDrawerOpen,
+  isLogin,
+  setIsLoginModalOpen,
+  handleLogout
 }) => {
   const [history, dispatch] = useReducer(historyReducer, [] as HistoryItem[]);
   const audioRef = useRef<HTMLAudioElement>(new Audio());
@@ -47,7 +49,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
           {t(currCharacter.name)}
         </h1>
       </div>
-      <ChatHistory {...{ history, dispatch, currCharacter }} />
+      <ChatHistory {...{ history, dispatch, currCharacter, handleLogout }} />
       <SendMsg
         {...{ setIsRecording, audioRef, dispatch, history, currCharacter, isLogin, setIsLoginModalOpen }}
       />

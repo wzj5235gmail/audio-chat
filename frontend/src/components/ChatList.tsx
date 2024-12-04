@@ -15,9 +15,10 @@ interface ChatListProps {
   setIsDrawerOpen: (isOpen: boolean) => void;
   isLogin: boolean;
   setIsLoginModalOpen: (isOpen: boolean) => void;
+  handleLogout: () => void;
 }
 
-const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen, isLogin, setIsLoginModalOpen }) => {
+const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, setIsDrawerOpen, isLogin, setIsLoginModalOpen, handleLogout }) => {
   const { t } = useContext(LanguageContext);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -26,6 +27,12 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
+    const tokenExpireAt = localStorage.getItem("token_expire_at");
+    if (tokenExpireAt && new Date(parseInt(tokenExpireAt) * 1000) < new Date()) {
+      handleLogout();
+      window.location.reload();
+      return;
+    }
     const getCharacters = async () => {
       const characters = await fetchCharacters();
       setCharacters(characters);
@@ -46,14 +53,7 @@ const ChatList: React.FC<ChatListProps> = ({ setCurrCharacter, setIsChatting, se
     };
   }, []);
 
-  const handleLogout = (): void => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("token_expire_at");
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("username");
-    localStorage.removeItem("nickname");
-    window.location.reload();
-  };
+
 
   return (
     <div className="flex flex-col lg:min-w-[400px]">

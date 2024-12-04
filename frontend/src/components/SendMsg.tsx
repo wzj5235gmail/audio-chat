@@ -95,7 +95,13 @@ const SendMsg: React.FC<SendMsgProps> = ({
         alert(t("failedToGenerateAudio"));
         return;
       }
-      const audioResponseEncoded = encode(await audioResponse.arrayBuffer());
+
+      // Get audio duration
+      const arrayBuffer = await audioResponse.arrayBuffer();
+      const audioResponseEncoded = encode(arrayBuffer);
+      const audioContext = new AudioContext();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const duration = audioBuffer.duration;
       dispatch({
         type: "CHANGE_LAST_HISTORY",
         payload: {
@@ -122,7 +128,7 @@ const SendMsg: React.FC<SendMsgProps> = ({
         return;
       }
       // wait for random time between 5 and 10 seconds
-      const randomTime = Math.floor(Math.random() * 5000) + 5000;
+      const randomTime = Math.floor(Math.random() * 2000) + duration * 1000;
       await new Promise(resolve => setTimeout(resolve, randomTime));
     }
   }

@@ -13,6 +13,7 @@ interface ChatListDrawerProps {
   setMsg?: (msg: string) => void;
   isLogin: boolean;
   setIsLoginModalOpen: (isOpen: boolean) => void;
+  handleLogout: () => void;
 }
 
 export function ChatListDrawer({
@@ -24,6 +25,7 @@ export function ChatListDrawer({
   setMsg,
   isLogin,
   setIsLoginModalOpen,
+  handleLogout
 }: ChatListDrawerProps) {
   const handleClose = (): void => setIsDrawerOpen(false);
   const isLargeScreen = useMediaQuery({ query: "(min-width: 1024px)" });
@@ -36,12 +38,12 @@ export function ChatListDrawer({
       style={{ height: "85vh" }}
     >
       <ChatList
-        {...{ setCurrCharacter, setIsChatting, setIsDrawerOpen, msg, setMsg, isLogin, setIsLoginModalOpen }}
+        {...{ setCurrCharacter, setIsChatting, setIsDrawerOpen, msg, setMsg, isLogin, setIsLoginModalOpen, handleLogout }}
       />
     </Drawer>
   ) : (
     <ChatList
-      {...{ setCurrCharacter, setIsChatting, setIsDrawerOpen, msg, setMsg, isLogin, setIsLoginModalOpen }}
+      {...{ setCurrCharacter, setIsChatting, setIsDrawerOpen, msg, setMsg, isLogin, setIsLoginModalOpen, handleLogout }}
     />
   );
 }

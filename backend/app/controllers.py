@@ -25,6 +25,7 @@ import logging
 import traceback
 import base64
 import asyncio
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -110,8 +111,11 @@ async def chat_handler(
             },
             config=config,
         ).content
-
-        responses = split_message(chat_reply)
+        print("*****************")
+        print(chat_reply)
+        print("*****************")
+        # responses = split_message(chat_reply)
+        responses = json.loads(chat_reply)
         # Create translation tasks for all responses while preserving order
         translation_tasks = []
         for response in responses:

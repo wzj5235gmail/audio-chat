@@ -9,14 +9,21 @@ interface ChatHistoryProps {
   history: HistoryItem[];
   dispatch: Dispatch<HistoryAction>;
   currCharacter: Character;
+  handleLogout: () => void;
 }
 
-const ChatHistory: React.FC<ChatHistoryProps> = ({ history, dispatch, currCharacter }) => {
+const ChatHistory: React.FC<ChatHistoryProps> = ({ history, dispatch, currCharacter, handleLogout }) => {
   const chatHistoryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
     if (!userId) return;
+    const tokenExpireAt = localStorage.getItem("token_expire_at");
+    if (tokenExpireAt && new Date(parseInt(tokenExpireAt) * 1000) < new Date()) {
+      handleLogout();
+      window.location.reload();
+      return;
+    }
     const getHistory = async (userId: string) => {
       const historyFromDB = await getConversations(userId, currCharacter.id);
       dispatch({ type: "INIT_HISTORY", payload: historyFromDB });

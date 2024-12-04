@@ -125,7 +125,16 @@ const fetchCharacters = async () => {
       "Content-Type": "application/json",
     },
   });
+  console.log(response);
+  if (!response.ok) {
+    console.error("Failed to fetch characters");
+    return [];
+  }
   const data = await response.json();
+  if (data.detail) {
+    console.error("Failed to fetch characters:", data.detail);
+    return [];
+  }
   const characters = data.map((item: any) => ({
     id: item._id,
     name: item.name,
