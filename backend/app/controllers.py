@@ -114,8 +114,10 @@ async def chat_handler(
         print("*****************")
         print(chat_reply)
         print("*****************")
-        # responses = split_message(chat_reply)
-        responses = json.loads(chat_reply)
+        if chat_reply.startswith("["):
+            responses = json.loads(chat_reply)
+        else:
+            responses = split_message(chat_reply)
         # Create translation tasks for all responses while preserving order
         translation_tasks = []
         for response in responses:

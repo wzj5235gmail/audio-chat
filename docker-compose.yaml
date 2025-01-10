@@ -21,6 +21,7 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    restart: always
 
   # voice-generation:
   #   image: wzj5235/voice-generation:latest
@@ -66,6 +67,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+    restart: always
 
   redis:
     image: redis:latest
@@ -79,6 +81,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+    restart: always
 
 volumes:
   mongodb_data:
