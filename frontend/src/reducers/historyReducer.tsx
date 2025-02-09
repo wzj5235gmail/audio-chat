@@ -1,5 +1,5 @@
 interface HistoryItem {
-  time: number;
+  created_at: number;
   message: string;
   role: string;
   translation?: string;

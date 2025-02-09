@@ -46,7 +46,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ history, dispatch, currCharac
       {history.length > 0 &&
         history.map((item) => (
           <ChatMessage
-            key={item.time}
+            key={item.created_at}
             message={item.message}
             isUser={item.role === "user"}
             loading={item.loading}
