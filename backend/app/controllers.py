@@ -139,7 +139,6 @@ async def chat_handler(
         messages = []
         # Save conversations with translations
         for index, (response, translation) in enumerate(zip(responses, translations)):
-            created_at = str(int(time.time() * 1000))
             conversation = await crud.create_conversation(
                 conversation={
                     "message": response,
@@ -148,7 +147,6 @@ async def chat_handler(
                     "user_id": user_id,
                     "character_id": character_id,
                 },
-                created_at=created_at,
             )
             messages.append(
                 {"message": response, "translation": translation, "id": conversation.id}
