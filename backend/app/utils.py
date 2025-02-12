@@ -10,6 +10,8 @@ import os
 from . import configs, database, security, schemas
 from typing import Literal
 import re
+from langchain_google_genai import ChatGoogleGenerativeAI
+
 
 
 def get_current_user_from_token(request: Request):
@@ -76,11 +78,20 @@ def split_message(message: str):
     return [msg for msg in messages if msg != ""]
 
 
-model = ChatOpenAI(
-    model=os.environ.get("GPT_MODEL"),
-    api_key=os.environ.get("OPENAI_API_KEY"),
-    temperature=float(os.environ.get("TEMPERATURE")),
-)
+models = {
+    "openai": ChatOpenAI(
+        model=os.environ.get("GPT_MODEL"),
+        api_key=os.environ.get("OPENAI_API_KEY"),
+        temperature=float(os.environ.get("TEMPERATURE")),
+    ),
+    "gemini": ChatGoogleGenerativeAI(
+        model=os.environ.get("GEMINI_MODEL"),
+        api_key=os.environ.get("GEMINI_API_KEY"),
+        temperature=float(os.environ.get("TEMPERATURE")),
+    )
+}
+
+model = models[os.environ.get("MODEL_TO_USE")]
 
 client = OpenAI()
 
